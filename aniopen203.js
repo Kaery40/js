@@ -16,8 +16,8 @@ function render(M) {
     "/" == M.substr(-1) ? list(M) : file(M)
 }
 document.write('<link rel="icon" type="image/x-icon" href="https://pro.0m.ee/cdn.jsdelivr.net/gh/RyanL-29/aniopen/favicon.ico">'),
-document.write('<link rel="stylesheet" href="https://pro.0m.ee/unpkg.com/mdui@1.0.2/dist/css/mdui.min.css" />'),
-document.write('<script src="https://pro.0m.ee/unpkg.com/mdui@1.0.2/dist/js/mdui.min.js"><\/script>'),
+document.write('<link rel="stylesheet" href="https://pro.0m.ee/cdn.jsdelivr.net/gh/kaery40/js/css/mdui.min.css" />'),
+document.write('<script src="https://pro.0m.ee/cdn.jsdelivr.net/gh/kaery40/js/js/mdui.min.js"><\/script>'),
 document.write('<link rel="stylesheet" href="https://pro.0m.ee/cdn.jsdelivr.net/npm/ionicons@2.0.1/css/ionicons.min.css">'),
 document.write('<link rel="manifest" href="https://pro.0m.ee/cdn.jsdelivr.net/gh/RyanL-29/aniopen@2.0.3/manifest.json">'),
 document.write('<link rel="apple-touch-icon" href="https://pro.0m.ee/cdn.jsdelivr.net/gh/RyanL-29/aniopen/pwa_icon/192x192nt.png">'),
