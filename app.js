@@ -666,7 +666,7 @@ function file_video(path) {
         hotkey: true,
         video: {
             url: encodedLink,
-            pic: 'https://raw.githubusercontent.com/RyanL-29/aniopen/master/background.png',
+            pic: 'https://gcore.jsdelivr.net/gh/RyanL-29/aniopen/background.png',
             type: 'auto',
         },
         subtitle: {
