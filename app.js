@@ -5,8 +5,8 @@ const version = "2.0.3"
 // document.write(`<script src="https://gcore.jsdelivr.net/gh/idiotWu/smooth-scrollbar@develop/dist/plugins/overscroll.js"></script>`);
 
 document.write(`<link rel="icon" type="image/x-icon" href="https://gcore.jsdelivr.net/gh/RyanL-29/aniopen/favicon.ico">`)
-document.write('<link rel="stylesheet" href="https://gcore.jsdelivr.net/gh/kaery40/js/css/mdui.min.css" />'),
-document.write('<script src="https://gcore.jsdelivr.net/gh/kaery40/js/js/mdui.min.js"><\/script>'),
+document.write('<link rel="stylesheet" href="https://npm.elemecdn.com/mdui@1.0.2/dist/css/mdui.min.css" />'),
+document.write('<script src="https://npm.elemecdn.com/mdui@1.0.2/dist/js/mdui.min.js"><\/script>'),
 document.write('<link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/ionicons@2.0.1/css/ionicons.min.css">');
 document.write(`<link rel="manifest" href="https://gcore.jsdelivr.net/gh/RyanL-29/aniopen@${version}/manifest.json">`);
 document.write('<link rel="apple-touch-icon" href="https://gcore.jsdelivr.net/gh/RyanL-29/aniopen/pwa_icon/192x192nt.png">');
