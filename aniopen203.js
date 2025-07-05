@@ -15,14 +15,14 @@ function render(M) {
     nav(M),
     "/" == M.substr(-1) ? list(M) : file(M)
 }
-document.write('<link rel="icon" type="image/x-icon" href="https://pro.v300.eu.org/cdn.jsdelivr.net/gh/RyanL-29/aniopen/favicon.ico">'),
-document.write('<link rel="stylesheet" href="https://pro.v300.eu.org/cdn.jsdelivr.net/gh/kaery40/js/css/mdui.min.css" />'),
-document.write('<script src="https://pro.v300.eu.org/cdn.jsdelivr.net/gh/kaery40/js/js/mdui.min.js"><\/script>'),
-document.write('<link rel="stylesheet" href="https://pro.v300.eu.org/cdn.jsdelivr.net/npm/ionicons@2.0.1/css/ionicons.min.css">'),
-document.write('<link rel="manifest" href="https://pro.v300.eu.org/cdn.jsdelivr.net/gh/RyanL-29/aniopen@2.0.3/manifest.json">'),
-document.write('<link rel="apple-touch-icon" href="https://pro.v300.eu.org/cdn.jsdelivr.net/gh/RyanL-29/aniopen/pwa_icon/192x192nt.png">'),
-document.write('<script src="https://pro.v300.eu.org/cdn.jsdelivr.net/npm/markdown-it@10.0.0/dist/markdown-it.min.js"><\/script>'),
-document.write('<script src="https://pro.v300.eu.org/cdn.jsdelivr.net/gh/RyanL-29/aniopen@2.0.3/DPlayer.min.js"><\/script>'),
+document.write('<link rel="icon" type="image/x-icon" href="https://gcore.jsdelivr.net/gh/RyanL-29/aniopen/favicon.ico">'),
+document.write('<link rel="stylesheet" href="https://gcore.jsdelivr.net/gh/kaery40/js/css/mdui.min.css" />'),
+document.write('<script src="https://gcore.jsdelivr.net/gh/kaery40/js/js/mdui.min.js"><\/script>'),
+document.write('<link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/ionicons@2.0.1/css/ionicons.min.css">'),
+document.write('<link rel="manifest" href="https://gcore.jsdelivr.net/gh/RyanL-29/aniopen@2.0.3/manifest.json">'),
+document.write('<link rel="apple-touch-icon" href="https://gcore.jsdelivr.net/gh/RyanL-29/aniopen/pwa_icon/192x192nt.png">'),
+document.write('<script src="https://gcore.jsdelivr.net/npm/markdown-it@10.0.0/dist/markdown-it.min.js"><\/script>'),
+document.write('<script src="https://gcore.jsdelivr.net/gh/RyanL-29/aniopen@2.0.3/DPlayer.min.js"><\/script>'),
 document.write("<style>.mdui-appbar .mdui-toolbar{height:56px;font-size:1pc}.mdui-toolbar>*{padding:0 6px;margin:0 2px}.mdui-toolbar>i{opacity:.5}.mdui-toolbar>.mdui-typo-headline{padding:0 1pc 0 0}.mdui-toolbar>i{padding:0}.mdui-toolbar>a:hover,a.active,a.mdui-typo-headline{opacity:1}.mdui-container{max-width:980px}.mdui-list-item{transition:none}.mdui-list>.th{background-color:initial}.mdui-list-item>a{width:100%;line-height:3pc}.mdui-list-item{margin:2px 0;padding:0}.mdui-toolbar>a:last-child{opacity:1}@media screen and (max-width:980px){.mdui-list-item .mdui-text-right{display:none}.mdui-container{width:100%!important;margin:0}.mdui-toolbar>.mdui-typo-headline,.mdui-toolbar>a:last-child,.mdui-toolbar>i:first-child{display:block}}</style>"),
 document.write('<script src="https://pro.v300.eu.org/cdnjs.cloudflare.com/ajax/libs/underscore.js/1.9.1/underscore-min.js"><\/script>');
 var timeout2 = null;
@@ -64,7 +64,7 @@ function contactus() {
 }
 function nav(M) {
     var t = "";
-    t += '<div style="max-width:150px;"><img class="mdui-typo-headline mdui-img-fluid folder" href="/"  style = "max-width: 100%;height: auto;width: auto;"src="https://pro.v300.eu.org/cdn.jsdelivr.net/gh/RyanL-29/aniopen/aniopen.png"></div>';
+    t += '<div style="max-width:150px;"><img class="mdui-typo-headline mdui-img-fluid folder" href="/"  style = "max-width: 100%;height: auto;width: auto;"src="https://gcore.jsdelivr.net/gh/RyanL-29/aniopen/aniopen.png"></div>';
     var e = M.trim("/").split("/");
     let n = "/";
     if (e.length > 0) {
@@ -223,7 +223,7 @@ function file_video(M) {
         hotkey: !0,
         video: {
             url: e,
-            pic: "https://pro.v300.eu.org/cdn.jsdelivr.net/gh/RyanL-29/aniopen/background.png",
+            pic: "https://gcore.jsdelivr.net/gh/RyanL-29/aniopen/background.png",
             type: "auto"
         },
         subtitle: {
