@@ -10,6 +10,7 @@ document.write('<script src="https://npm.elemecdn.com/mdui@1.0.2/dist/js/mdui.mi
 document.write('<link rel="stylesheet" href="https://gcore.jsdelivr.net/npm/ionicons@2.0.1/css/ionicons.min.css">');
 document.write(`<link rel="manifest" href="https://gcore.jsdelivr.net/gh/RyanL-29/aniopen@${version}/manifest.json">`);
 document.write('<link rel="apple-touch-icon" href="https://gcore.jsdelivr.net/gh/RyanL-29/aniopen/pwa_icon/192x192nt.png">');
+document.write('<script src="https://gcore.jsdelivr.net/npm/instant.page@5.1.0/instantpage.js" type="module"></script>');
 // markdown支持
 document.write('<script src="https://gcore.jsdelivr.net/npm/markdown-it@10.0.0/dist/markdown-it.min.js"></script>');
 // DPlayer API
