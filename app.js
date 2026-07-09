@@ -620,11 +620,12 @@ ${fileName_mobile}
 // 文件展示 视频 |mp4|webm|avi|
 function file_video(path) {
     var safeDecode = function (s) { try { return decodeURIComponent(s); } catch (e) { return s; } };
+    var apEscHtml = function (s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); };
     var linkComp = path.split('/');
     var encodedLink = window.location.origin;
     let fileName_mobile = ""
     if (screen.width < 570) {
-        fileName_mobile = `<p id="apFileName" style="overflow-wrap: break-word;">${safeDecode(linkComp.at(-1) || "").replace(/\.[^.]+$/, "")}</p>`
+        fileName_mobile = `<p id="apFileName" style="overflow-wrap: break-word;">${apEscHtml(safeDecode(linkComp.at(-1) || "").replace(/\.[^.]+$/, ""))}</p>`
     }
     for (var i = 1; i < linkComp.length; i++) {
         var pathcomp = safeDecode(linkComp[i]);
@@ -652,7 +653,7 @@ function file_video(path) {
 #dplayer{ position:absolute; inset:0; width:100%; height:100%; }
 #dplayer .dplayer, #dplayer .dplayer-video-wrap, #dplayer video{ width:100%!important; height:100%!important; }
 #dplayer video{ object-fit:contain; background:#000; }
-#dplayer .dplayer-controller, #dplayer .dplayer-controller-mask, #dplayer .dplayer-mobile-play, #dplayer .dplayer-bezel, #dplayer .dplayer-notice{ display:none!important; }
+#dplayer .dplayer-controller, #dplayer .dplayer-controller-mask, #dplayer .dplayer-mobile-play, #dplayer .dplayer-bezel, #dplayer .dplayer-notice, #dplayer .dplayer-menu{ display:none!important; }
 #dplayer .dplayer-subtitle{ bottom:76px!important; z-index:4; }
 .ap-scrim{ position:absolute; left:0; right:0; pointer-events:none; opacity:0; transition:opacity .25s; z-index:5; }
 .ap-scrim-top{ top:0; height:110px; background:linear-gradient(180deg,rgba(0,0,0,.6),transparent); }
@@ -660,11 +661,8 @@ function file_video(path) {
 .aniplayer-stage.ap-active .ap-scrim{ opacity:1; }
 .ap-top{ position:absolute; top:0; left:0; right:0; z-index:12; display:flex; align-items:center; gap:12px; padding:14px 16px; opacity:0; transform:translateY(-6px); transition:.25s; pointer-events:none; }
 .aniplayer-stage.ap-active .ap-top{ opacity:1; transform:none; }
-.ap-back{ pointer-events:auto; flex:0 0 auto; display:inline-flex; align-items:center; gap:6px; border:none; cursor:pointer; color:#fff; background:rgba(30,30,32,.55); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); border-radius:22px; padding:8px 15px 8px 11px; font-size:14px; }
-.ap-back:hover{ background:rgba(70,70,74,.85); }
-.ap-back .mdui-icon{ font-size:20px; }
-.ap-title{ flex:1; text-align:center; color:#fff; font-size:16px; font-weight:600; text-shadow:0 1px 8px rgba(0,0,0,.8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.ap-top-spacer{ flex:0 0 88px; }
+.ap-title{ position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); text-align:center; padding:0 92px; color:#fff; font-size:16px; font-weight:600; text-shadow:0 1px 8px rgba(0,0,0,.8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; }
+.ap-top-spacer{ flex:1; }
 .ap-center{ position:absolute; inset:0; z-index:8; display:flex; align-items:center; justify-content:center; pointer-events:none; }
 .ap-bigplay{ pointer-events:auto; width:76px; height:76px; border-radius:50%; border:none; cursor:pointer; color:#fff; background:rgba(20,20,22,.5); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; transition:transform .2s, background .2s, opacity .2s; }
 .ap-bigplay:hover{ transform:scale(1.08); background:rgba(255,79,163,.75); }
@@ -690,12 +688,11 @@ function file_video(path) {
 .ap-btn{ border:none; background:none; color:#fff; cursor:pointer; width:38px; height:38px; border-radius:9px; display:inline-flex; align-items:center; justify-content:center; transition:background .15s; }
 .ap-btn:hover{ background:rgba(255,255,255,.16); }
 .ap-btn .mdui-icon{ font-size:23px; }
-.ap-speed{ width:auto; padding:0 8px; font-size:14px; font-weight:700; }
 .ap-time{ color:#eaeaea; font-size:13px; margin-left:8px; white-space:nowrap; font-variant-numeric:tabular-nums; }
 .ap-vol{ display:flex; align-items:center; }
-.ap-menu{ position:absolute; right:12px; bottom:60px; z-index:16; background:rgba(24,24,26,.97); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border-radius:12px; padding:6px; min-width:150px; box-shadow:0 10px 30px rgba(0,0,0,.55); display:none; max-height:calc(100% - 72px); overflow-y:auto; }
+.ap-menu{ position:absolute; right:12px; bottom:60px; z-index:16; background:rgba(24,24,26,.97); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border-radius:10px; padding:5px; min-width:136px; box-shadow:0 10px 30px rgba(0,0,0,.55); display:none; max-height:calc(100% - 72px); overflow-y:auto; }
 .aniplayer-stage.ap-menu-open .ap-menu{ display:block; }
-.ap-mi{ padding:9px 14px; color:#ddd; font-size:13px; border-radius:7px; cursor:pointer; white-space:nowrap; }
+.ap-mi{ padding:7px 11px; color:#ddd; font-size:12.5px; border-radius:6px; cursor:pointer; white-space:nowrap; }
 .ap-mi:hover{ background:rgba(255,255,255,.12); color:#fff; }
 .ap-mi.active{ color:#ff7dcc; }
 .ap-eppanel{ position:absolute; top:0; right:0; bottom:0; width:330px; max-width:82%; background:rgba(16,16,18,.97); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); z-index:18; transform:translateX(102%); transition:transform .28s ease; display:flex; flex-direction:column; box-shadow:-8px 0 30px rgba(0,0,0,.55); }
@@ -734,17 +731,18 @@ function file_video(path) {
 .ap-volbar::-moz-range-thumb{ width:9px; height:9px; border:none; border-radius:50%; background:#fff; }
 .ap-volbar::-moz-range-thumb{ width:16px; height:16px; border:none; border-radius:50%; background:#fff; }
 /* 更多菜单（带图标） */
-.ap-menu-title{ color:#8a8a90; font-size:12px; padding:6px 12px 6px; }
-.ap-mi{ display:flex; align-items:center; gap:12px; }
-.ap-mi .mdui-icon{ font-size:20px; color:#cbcbd0; }
+.ap-menu-title{ color:#8a8a90; font-size:11px; padding:4px 11px 4px; }
+.ap-mi{ display:flex; align-items:center; gap:9px; }
+.ap-mi .mdui-icon{ font-size:18px; color:#cbcbd0; }
 .ap-mi.active, .ap-mi.active .mdui-icon{ color:#ff7dcc; }
 /* 带开关的菜单项 */
 .ap-mi-sw{ justify-content:space-between; }
-.ap-mi-sw .l{ display:inline-flex; align-items:center; gap:12px; color:#ddd; }
-.ap-switch{ flex:0 0 auto; width:34px; height:18px; border-radius:10px; background:rgba(255,255,255,.22); position:relative; transition:background .2s; }
+.ap-mi-sw .l{ display:inline-flex; align-items:center; gap:9px; color:#ddd; }
+.ap-mi-sw .l~span{ margin-left:14px; }
+.ap-switch{ flex:0 0 auto; width:30px; height:16px; border-radius:9px; background:rgba(255,255,255,.22); position:relative; transition:background .2s; }
 .ap-switch.on{ background:#ff4fa3; }
-.ap-switch::after{ content:""; position:absolute; top:2px; left:2px; width:14px; height:14px; border-radius:50%; background:#fff; transition:left .2s; }
-.ap-switch.on::after{ left:18px; }
+.ap-switch::after{ content:""; position:absolute; top:2px; left:2px; width:12px; height:12px; border-radius:50%; background:#fff; transition:left .2s; }
+.ap-switch.on::after{ left:16px; }
 /* 网页全屏（填满浏览器视口，非系统全屏） */
 .aniplayer-stage.ap-webfull{ position:fixed; inset:0; z-index:9999; width:100vw; height:100vh; height:100dvh; max-height:none; border-radius:0; aspect-ratio:auto; }
 /* 统计面板 */
@@ -758,7 +756,7 @@ function file_video(path) {
 .ap-stats-row{ display:flex; justify-content:space-between; padding:3px 0; color:#a9a9b2; }
 .ap-stats-row b{ color:#fff; font-weight:600; font-variant-numeric:tabular-nums; }
 @media(max-width:600px){
-  .ap-title{ font-size:13px; }
+  .ap-title{ font-size:13px; padding:0 76px; }
   .ap-top-spacer{ display:none; }
   .ap-vol{ display:none; }                       /* 手机隐藏音量控件，用设备音量键 */
   .ap-bottom{ padding:0 8px 8px; }
@@ -766,8 +764,6 @@ function file_video(path) {
   .ap-btn .mdui-icon{ font-size:21px; }
   .ap-l, .ap-r{ gap:0; }
   .ap-time{ font-size:11px; margin-left:5px; }
-  .ap-speed{ padding:0 5px; font-size:13px; }
-  .ap-back{ padding:7px 12px 7px 9px; font-size:13px; }
   .ap-bigplay{ width:64px; height:64px; }
   .ap-bigplay .mdui-icon{ font-size:38px; }
 }
@@ -784,8 +780,7 @@ function file_video(path) {
         <div class="ap-scrim ap-scrim-top"></div>
         <div class="ap-scrim ap-scrim-bottom"></div>
         <div class="ap-top">
-          <button class="ap-back" id="apBack"><i class="mdui-icon material-icons">arrow_back</i><span>返回</span></button>
-          <div class="ap-title">${title}</div>
+          <div class="ap-title">${apEscHtml(title)}</div>
           <div class="ap-top-spacer"></div>
         </div>
         <div class="ap-center"><div class="ap-spinner"></div><button class="ap-bigplay" id="apBig"><i class="mdui-icon material-icons">play_arrow</i></button></div>
@@ -808,7 +803,6 @@ function file_video(path) {
             </div>
             <div class="ap-r">
               <button class="ap-btn" id="apList" title="選集"><i class="mdui-icon material-icons">playlist_play</i></button>
-              <button class="ap-btn ap-speed" id="apSpeed" title="播放速度">1×</button>
               <div class="ap-vol" id="apVolWrap">
                 <div class="ap-volpop" id="apVolPop">
                   <div class="ap-volpop-head"><span class="lab">音量</span><span id="apVolVal">100</span><button class="ap-volmute" id="apMuteToggle" title="靜音"><i class="mdui-icon material-icons">volume_up</i></button></div>
@@ -836,7 +830,7 @@ function file_video(path) {
 	  <input id="apDlInput" style="color:white;" class="mdui-textfield-input" type="text" value="${encodedLink}"/>
 	</div>
     <button href="${share}" id="copybt" class="mdui-btn mdui-btn-raised mdui-btn-dense mdui-color-theme-accent mdui-ripple" onClick="copyURI(event)"><i class="mdui-icon material-icons">share</i> Share</button>
-    <button id="apDlBtn" onclick="javascript:location.href='${encodedLink}'" class="mdui-btn mdui-btn-raised mdui-btn-dense mdui-ripple mdui-color-theme-accent"><i class="mdui-icon material-icons">cloud_download</i> Download</button>
+    <button id="apDlBtn" class="mdui-btn mdui-btn-raised mdui-btn-dense mdui-ripple mdui-color-theme-accent"><i class="mdui-icon material-icons">cloud_download</i> Download</button>
     <br>
 </div>
 	`;
@@ -856,7 +850,7 @@ function file_video(path) {
     function onWin(type, fn, opts) { window.addEventListener(type, fn, opts); winHandlers.push([type, fn, opts]); }
     var elPlay = gid('apPlay'), elCur = gid('apCur'), elDur = gid('apDur'),
         elProg = gid('apProg'), elPlayed = gid('apPlayed'), elThumb = gid('apThumb'), elTip = gid('apTip'),
-        elSpeed = gid('apSpeed'), elMute = gid('apMute'), elVol = gid('apVol'), elVolVal = gid('apVolVal'), elMenu = gid('apMenu'),
+        elMute = gid('apMute'), elVol = gid('apVol'), elVolVal = gid('apVolVal'), elMenu = gid('apMenu'),
         elVolWrap = gid('apVolWrap'), elMuteToggle = gid('apMuteToggle');
 
     function fmt(t) {
@@ -934,7 +928,7 @@ function file_video(path) {
             elPlayed.style.width = (r * 100) + '%'; elThumb.style.left = (r * 100) + '%';
         });
         v.addEventListener('volumechange', function () { if (v === player.video) { prefVol = v.volume; prefMuted = v.muted; syncVol(); } });
-        v.addEventListener('ratechange', function () { if (v === player.video) { prefRate = v.playbackRate; elSpeed.textContent = (v.playbackRate === 1 ? '1' : v.playbackRate) + '×'; } });
+        v.addEventListener('ratechange', function () { if (v === player.video) { prefRate = v.playbackRate; } });
         v.addEventListener('waiting', function () { if (v === player.video) stage.classList.add('ap-loading'); });
         v.addEventListener('seeking', function () { if (v === player.video) stage.classList.add('ap-loading'); });
         ['playing', 'canplay', 'seeked'].forEach(function (ev) { v.addEventListener(ev, function () { if (v === player.video) stage.classList.remove('ap-loading'); }); });
@@ -966,6 +960,9 @@ function file_video(path) {
     }
 
     // ---- 控件绑定（只绑一次，全部引用 player.video）----
+    // 屏蔽 DPlayer 原生右键菜单（.dplayer-menu）：#dplayer 容器在 mount 里只清空 innerHTML、节点本身不重建，绑一次即可
+    var apDpBox = gid('dplayer');
+    if (apDpBox) apDpBox.addEventListener('contextmenu', function (e) { e.preventDefault(); e.stopPropagation(); });
     elPlay.onclick = togglePlay; gid('apBig').onclick = togglePlay;
     var seeking = false;
     elProg.addEventListener('mousedown', function (e) { seeking = true; seekAt(e.clientX); });
@@ -982,26 +979,27 @@ function file_video(path) {
     if (elMuteToggle) elMuteToggle.onclick = function (e) { e.stopPropagation(); var v = player.video; if (v) v.muted = !v.muted; };
     gid('apVolPop').addEventListener('click', function (e) { e.stopPropagation(); });
     var speeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
-    elSpeed.onclick = function (e) {
-        e.stopPropagation(); stage.classList.remove('ap-panel-open', 'ap-stats-open'); elVolWrap.classList.remove('ap-volopen');
-        var same = stage.classList.contains('ap-menu-open') && elMenu.getAttribute('data-menu') === 'speed';
-        var cur = player.video ? player.video.playbackRate : 1;
+    // 渲染倍速子菜单（从「更多」里的「播放速度」进入）
+    function renderSpeedMenu() {
+        var cur = player.video ? player.video.playbackRate : prefRate;
         elMenu.setAttribute('data-menu', 'speed');
-        elMenu.innerHTML = '<div class="ap-menu-title">播放速度</div>' + speeds.map(function (s) { return '<div class="ap-mi' + (cur === s ? ' active' : '') + '" data-s="' + s + '"><i class="mdui-icon material-icons">' + (cur === s ? 'check' : 'speed') + '</i>' + s + '×</div>'; }).join('');
-        elMenu.querySelectorAll('.ap-mi').forEach(function (it) { it.onclick = function () { var s = parseFloat(this.getAttribute('data-s')); prefRate = s; if (player.video) player.video.playbackRate = s; elSpeed.textContent = (s === 1 ? '1' : s) + '×'; stage.classList.remove('ap-menu-open'); }; });
-        if (same) stage.classList.remove('ap-menu-open'); else stage.classList.add('ap-menu-open');
-    };
-    gid('apMore').onclick = function (e) {
-        e.stopPropagation(); stage.classList.remove('ap-panel-open', 'ap-stats-open'); elVolWrap.classList.remove('ap-volopen');
-        var same = stage.classList.contains('ap-menu-open') && elMenu.getAttribute('data-menu') === 'more';
+        elMenu.innerHTML = '<div class="ap-mi" id="miSpeedBack"><i class="mdui-icon material-icons">arrow_back</i>播放速度</div>' + speeds.map(function (s) { return '<div class="ap-mi ap-mi-s' + (cur === s ? ' active' : '') + '" data-s="' + s + '"><i class="mdui-icon material-icons"' + (cur === s ? '' : ' style="visibility:hidden"') + '>check</i>' + (s === 1 ? '正常' : s + '×') + '</div>'; }).join('');
+        gid('miSpeedBack').onclick = function (ev) { ev.stopPropagation(); renderMoreMenu(); };   // 返回更多菜单
+        elMenu.querySelectorAll('.ap-mi-s').forEach(function (it) { it.onclick = function () { var s = parseFloat(this.getAttribute('data-s')); prefRate = s; if (player.video) player.video.playbackRate = s; stage.classList.remove('ap-menu-open'); }; });
+    }
+    // 渲染「更多」主菜单内容（初次打开 + 从倍速子菜单返回都用它）
+    function renderMoreMenu() {
         elMenu.setAttribute('data-menu', 'more');
+        var curRate = player.video ? player.video.playbackRate : prefRate;
         elMenu.innerHTML =
             '<div class="ap-menu-title">更多</div>' +
             '<div class="ap-mi ap-mi-sw" id="miAuto"><span class="l"><i class="mdui-icon material-icons">skip_next</i>自動連播</span><span class="ap-switch' + (autoNext ? ' on' : '') + '"></span></div>' +
             '<div class="ap-mi ap-mi-sw" id="miSub"><span class="l"><i class="mdui-icon material-icons">subtitles</i>字幕</span><span class="ap-switch' + (subOn ? ' on' : '') + '"></span></div>' +
+            '<div class="ap-mi ap-mi-sw" id="miSpeed"><span class="l"><i class="mdui-icon material-icons">slow_motion_video</i>播放速度</span><span style="color:#9a9aa4;font-size:.9em">' + (curRate === 1 ? '正常' : curRate + '×') + ' ›</span></div>' +
             '<div class="ap-mi" id="miShot"><i class="mdui-icon material-icons">photo_camera</i>截圖</div>' +
             '<div class="ap-mi" id="miStats"><i class="mdui-icon material-icons">show_chart</i>顯示統計</div>' +
             '<div class="ap-mi" id="miPip"><i class="mdui-icon material-icons">picture_in_picture_alt</i>畫中畫</div>';
+        gid('miSpeed').onclick = function (ev) { ev.stopPropagation(); renderSpeedMenu(); };
         gid('miAuto').onclick = function (ev) {
             ev.stopPropagation();
             autoNext = !autoNext;
@@ -1018,7 +1016,12 @@ function file_video(path) {
         gid('miShot').onclick = function () { takeShot(); stage.classList.remove('ap-menu-open'); };
         gid('miStats').onclick = function () { stage.classList.toggle('ap-stats-open'); stage.classList.remove('ap-menu-open'); };
         gid('miPip').onclick = function () { try { var v = player.video; if (document.pictureInPictureElement) document.exitPictureInPicture(); else if (v && v.requestPictureInPicture) v.requestPictureInPicture(); } catch (e) { } stage.classList.remove('ap-menu-open'); };
-        if (same) stage.classList.remove('ap-menu-open'); else stage.classList.add('ap-menu-open');
+    }
+    gid('apMore').onclick = function (e) {
+        e.stopPropagation(); stage.classList.remove('ap-panel-open', 'ap-stats-open'); elVolWrap.classList.remove('ap-volopen');
+        if (stage.classList.contains('ap-menu-open')) { stage.classList.remove('ap-menu-open'); return; }   // 单击开/关，任何子菜单下一次即关
+        renderMoreMenu();
+        stage.classList.add('ap-menu-open');
     };
     elMenu.addEventListener('click', function (e) { e.stopPropagation(); });
     gid('apStatsClose').onclick = function () { stage.classList.remove('ap-stats-open'); };
@@ -1031,7 +1034,7 @@ function file_video(path) {
             if (stage.classList.contains('ap-webfull')) setWebFull(false);   // 系统全屏与网页全屏互斥，避免叠加
             var rq = stage.requestFullscreen || stage.webkitRequestFullscreen;
             if (rq) { try { rq.call(stage); } catch (e) { } }
-            else { var v = player.video; if (v && v.webkitEnterFullscreen) v.webkitEnterFullscreen(); }   // iOS 回退到原生 video 全屏
+            else { var v = player.video; if (v && v.webkitEnterFullscreen) try { v.webkitEnterFullscreen(); } catch (e) { } }   // iOS 回退到原生 video 全屏
         }
     };
     function apFsSync() { var b = gid('apFull'); if (b) b.querySelector('.mdui-icon').textContent = (document.fullscreenElement || document.webkitFullscreenElement) ? 'fullscreen_exit' : 'fullscreen'; }
@@ -1047,7 +1050,7 @@ function file_video(path) {
     // Esc 退出网页全屏（若正处于系统全屏，先让浏览器退出系统全屏，本次不动网页全屏）
     onDoc('keydown', function (e) { if (e.key === 'Escape' && stage.classList.contains('ap-webfull') && !(document.fullscreenElement || document.webkitFullscreenElement)) setWebFull(false); });
     // 浏览器/后退导航离开时，恢复 body 滚动，避免目录页被锁死
-    onWin('popstate', function () { if (stage.classList.contains('ap-webfull')) setWebFull(false); document.body.style.overflow = ''; });
+    onWin('popstate', function () { if (stage.classList.contains('ap-webfull')) setWebFull(false); document.body.style.overflow = ''; try { if (player.video) player.video.pause(); } catch (e) { } try { if (player.dp) player.dp.destroy(); } catch (e) { } });   // 离开播放页停止播放，避免音频继续 + DPlayer 泄漏
     gid('apList').onclick = function (e) { e.stopPropagation(); stage.classList.remove('ap-menu-open', 'ap-stats-open'); elVolWrap.classList.remove('ap-volopen'); stage.classList.toggle('ap-panel-open'); };
     gid('apPanelClose').onclick = function (e) { e.stopPropagation(); stage.classList.remove('ap-panel-open'); };
     gid('apEpPanel').addEventListener('click', function (e) { e.stopPropagation(); });
@@ -1066,7 +1069,8 @@ function file_video(path) {
     stage.addEventListener('mousemove', function () { if (player.dp) player.dp.focus = true; showControls(); });   // 保持 DPlayer 键盘热键(方向键快进快退)激活
     stage.addEventListener('click', function () { if (player.dp) player.dp.focus = true; }, true);
     stage.addEventListener('touchstart', function () { touchReveal = !stage.classList.contains('ap-active'); showControls(); }, { passive: true });
-    gid('apBack').onclick = function () { if (stage.classList.contains('ap-webfull')) setWebFull(false); history.back(); };
+    // Download 用 JS 绑定（避免文件名含单引号时内联 onclick 语法错误）；读同步更新的下载地址
+    gid('apDlBtn').onclick = function () { var di = gid('apDlInput'); if (di) location.href = di.value; };
 
     // 注册清理钩子：下次进入播放页或本页卸载时拆除本次运行的 document 监听器 / 定时器 / DPlayer
     window.__apCleanup = function () {
@@ -1112,11 +1116,11 @@ function file_video(path) {
         curName = name; viewLabel = null;
         mount(url, sub, true);
         stage.classList.remove('ap-panel-open', 'ap-menu-open', 'ap-stats-open');
-        var tt = apTitleOf(name), te = stage.querySelector('.ap-title'); if (te) te.textContent = tt; try { document.title = tt; } catch (e) { }
+        var tt = apTitleOf(name); title = tt;   // 同步外层 title（截图文件名用）
+        var te = stage.querySelector('.ap-title'); if (te) te.textContent = tt; try { document.title = tt; } catch (e) { }
         var fnEl = gid('apFileName'); if (fnEl) fnEl.textContent = tt;
-        var di = gid('apDlInput'); if (di) di.value = url;
-        var db = gid('apDlBtn'); if (db) db.setAttribute('onclick', "javascript:location.href='" + url + "'");
-        var sb = gid('copybt'); if (sb) sb.setAttribute('href', view);
+        var di = gid('apDlInput'); if (di) di.value = url;   // Download 按钮读此值
+        var sb = gid('copybt'); if (sb) sb.setAttribute('href', url + '?a=view');   // 分享用绝对 URL
         var vl = gid('apVlcLink'); if (vl) vl.setAttribute('href', 'vlc://' + url);
         renderAll();
         showControls();
@@ -1177,6 +1181,7 @@ function file_video(path) {
     }
 
     $.post(dirPath, JSON.stringify({ password: apPwd || '' }), function (data) {
+        if (!stage.isConnected) return;   // 已离开本播放页（快速跨页导航），丢弃过期回调，避免污染新页面
         var hideList = function () { var lb = gid('apList'); if (lb) lb.style.display = 'none'; };
         var obj; try { obj = JSON.parse(data); } catch (e) { hideList(); return; }
         if (!obj || obj.error || !obj.files) { hideList(); return; }
@@ -1204,7 +1209,7 @@ function file_video(path) {
             return { label: l, eps: uniq };
         });
         var total = variants.reduce(function (n, v) { return n + v.eps.length; }, 0);
-        if (total < 2 && variants.length < 2) { hideList(); return; }
+        if (total < 2 && variants.length < 2) { variants = []; hideList(); return; }   // 单集：清空以免 ended 时误弹「已是最後一集」
         renderAll();
         if (pendingAutoNext) { pendingAutoNext = false; if (player.video && player.video.ended) playNext(); }
     });
@@ -1439,7 +1444,7 @@ function copyURI(evt) {
     //         evt.target.innerHTML = `<i class="mdui-icon material-icons">share</i> Share`
     //     }, 1500)
     // });
-    navigator.clipboard.writeText(evt.target.getAttribute('href')).then(() => {
+    navigator.clipboard.writeText((evt.currentTarget || evt.target).getAttribute('href')).then(() => {
         /* clipboard successfully set */
         mdui.snackbar({
             message: '已複製連結 - Link Copied',
