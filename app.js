@@ -716,20 +716,20 @@ function file_video(path) {
 .ap-eptab.active{ background:rgba(255,79,163,.16); color:#ff6ab8; border-color:#ff6ab8; }
 /* 音量弹窗 */
 .ap-vol{ position:relative; }
-.ap-volpop{ position:absolute; left:50%; bottom:44px; transform:translateX(-50%) translateY(5px); width:92px; padding:6px 8px 7px; background:rgba(28,28,30,.97); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); border-radius:9px; box-shadow:0 7px 18px rgba(0,0,0,.55); opacity:0; pointer-events:none; transition:opacity .18s, transform .18s; }
+.ap-volpop{ position:absolute; left:50%; bottom:48px; transform:translateX(-50%) translateY(5px); width:112px; padding:8px 10px 9px; background:rgba(28,28,30,.97); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); border-radius:9px; box-shadow:0 7px 18px rgba(0,0,0,.55); opacity:0; pointer-events:none; transition:opacity .18s, transform .18s; }
 .ap-vol.ap-volopen .ap-volpop{ opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0); }
 .ap-volpop-head{ display:flex; justify-content:space-between; align-items:center; gap:4px; margin-bottom:4px; }
-.ap-volpop-head .lab{ color:#c8c8ce; font-size:10px; }
+.ap-volpop-head .lab{ color:#c8c8ce; font-size:11px; }
 .ap-volmute{ border:none; background:none; color:#c8c8ce; cursor:pointer; display:inline-flex; align-items:center; padding:1px; margin-left:auto; }
-.ap-volmute .mdui-icon{ font-size:13px; }
+.ap-volmute .mdui-icon{ font-size:15px; }
 .ap-volmute:hover{ color:#fff; }
-.ap-volpop-head #apVolVal{ color:#fff; font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; }
-.ap-volticks{ display:flex; justify-content:space-between; align-items:flex-end; height:4px; padding:0 1px; margin-bottom:4px; }
+.ap-volpop-head #apVolVal{ color:#fff; font-size:12px; font-weight:700; font-variant-numeric:tabular-nums; }
+.ap-volticks{ display:flex; justify-content:space-between; align-items:flex-end; height:5px; padding:0 1px; margin-bottom:5px; }
 .ap-volticks i{ width:1px; height:4px; background:rgba(255,255,255,.32); }
-.ap-volbar{ -webkit-appearance:none; appearance:none; width:100%; margin:0; height:3px; border-radius:3px; cursor:pointer; background:linear-gradient(90deg,#e3b341 var(--v,100%), rgba(255,255,255,.22) var(--v,100%)); }
-.ap-volbar::-webkit-slider-thumb{ -webkit-appearance:none; width:9px; height:9px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.5); }
+.ap-volbar{ -webkit-appearance:none; appearance:none; width:100%; margin:0; height:4px; border-radius:3px; cursor:pointer; background:linear-gradient(90deg,#e3b341 var(--v,100%), rgba(255,255,255,.22) var(--v,100%)); }
+.ap-volbar::-webkit-slider-thumb{ -webkit-appearance:none; width:11px; height:11px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.5); }
 .ap-volbar::-moz-range-thumb{ width:9px; height:9px; border:none; border-radius:50%; background:#fff; }
-.ap-volbar::-moz-range-thumb{ width:16px; height:16px; border:none; border-radius:50%; background:#fff; }
+.ap-volbar::-moz-range-thumb{ width:18px; height:18px; border:none; border-radius:50%; background:#fff; }
 /* 更多菜单（带图标） */
 .ap-menu-title{ color:#8a8a90; font-size:11px; padding:4px 11px 4px; }
 .ap-mi{ display:flex; align-items:center; gap:9px; }
@@ -746,14 +746,14 @@ function file_video(path) {
 /* 网页全屏（填满浏览器视口，非系统全屏） */
 .aniplayer-stage.ap-webfull{ position:fixed; inset:0; z-index:9999; width:100vw; height:100vh; height:100dvh; max-height:none; border-radius:0; aspect-ratio:auto; }
 /* 统计面板 */
-.ap-stats{ position:absolute; top:62px; left:16px; z-index:22; width:280px; max-width:72%; background:rgba(10,10,12,.88); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.09); border-radius:14px; padding:14px 16px; color:#dcdce2; font-size:13px; display:none; }
+.ap-stats{ position:absolute; top:62px; left:16px; z-index:22; width:232px; max-width:72%; background:rgba(10,10,12,.88); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.09); border-radius:12px; padding:11px 13px; color:#dcdce2; font-size:12px; display:none; }
 .aniplayer-stage.ap-stats-open .ap-stats{ display:block; }
-.ap-stats-head{ display:flex; align-items:center; justify-content:space-between; color:#e3b341; font-weight:600; letter-spacing:2px; margin-bottom:8px; }
+.ap-stats-head{ display:flex; align-items:center; justify-content:space-between; color:#e3b341; font-weight:600; letter-spacing:1px; margin-bottom:6px; }
 .ap-stats-head .t{ display:inline-flex; align-items:center; gap:6px; }
-.ap-stats-head .mdui-icon{ font-size:18px; }
+.ap-stats-head .mdui-icon{ font-size:16px; }
 .ap-stats-close{ border:none; background:none; color:#999; cursor:pointer; display:inline-flex; }
-.ap-spark{ width:100%; height:34px; display:block; margin:2px 0 8px; }
-.ap-stats-row{ display:flex; justify-content:space-between; padding:3px 0; color:#a9a9b2; }
+.ap-spark{ width:100%; height:27px; display:block; margin:2px 0 6px; }
+.ap-stats-row{ display:flex; justify-content:space-between; padding:2px 0; color:#a9a9b2; }
 .ap-stats-row b{ color:#fff; font-weight:600; font-variant-numeric:tabular-nums; }
 @media(max-width:600px){
   .ap-title{ font-size:13px; padding:0 76px; }
@@ -791,7 +791,7 @@ function file_video(path) {
         </div>
         <div class="ap-stats" id="apStats">
           <div class="ap-stats-head"><span class="t"><i class="mdui-icon material-icons">show_chart</i> STATS</span><button class="ap-stats-close" id="apStatsClose"><i class="mdui-icon material-icons">close</i></button></div>
-          <canvas class="ap-spark" id="apSpark" width="248" height="34"></canvas>
+          <canvas class="ap-spark" id="apSpark" width="204" height="27"></canvas>
           <div id="apStatsRows"></div>
         </div>
         <div class="ap-bottom">
@@ -812,7 +812,7 @@ function file_video(path) {
                 <button class="ap-btn" id="apMute" title="音量"><i class="mdui-icon material-icons">volume_up</i></button>
               </div>
               <button class="ap-btn" id="apMore" title="更多"><i class="mdui-icon material-icons">more_vert</i></button>
-              <button class="ap-btn" id="apWebFull" title="網頁全屏"><i class="mdui-icon material-icons">crop_free</i></button>
+              <button class="ap-btn" id="apWebFull" title="網頁全屏"><i class="mdui-icon material-icons">web_asset</i></button>
               <button class="ap-btn" id="apFull" title="全螢幕"><i class="mdui-icon material-icons">fullscreen</i></button>
             </div>
           </div>
@@ -1044,7 +1044,7 @@ function file_video(path) {
         if (on && (document.fullscreenElement || document.webkitFullscreenElement)) { var ex = document.exitFullscreen || document.webkitExitFullscreen; if (ex) try { ex.call(document); } catch (e) { } }   // 与系统全屏互斥
         stage.classList.toggle('ap-webfull', on);
         document.body.style.overflow = on ? 'hidden' : '';
-        var b = gid('apWebFull'); if (b) b.querySelector('.mdui-icon').textContent = on ? 'settings_overscan' : 'crop_free';
+        var b = gid('apWebFull'); if (b) b.querySelector('.mdui-icon').textContent = on ? 'settings_overscan' : 'web_asset';
     }
     gid('apWebFull').onclick = function (e) { e.stopPropagation(); setWebFull(!stage.classList.contains('ap-webfull')); };
     // Esc 退出网页全屏（若正处于系统全屏，先让浏览器退出系统全屏，本次不动网页全屏）
