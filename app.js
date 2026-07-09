@@ -693,7 +693,7 @@ function file_video(path) {
 .ap-speed{ width:auto; padding:0 8px; font-size:14px; font-weight:700; }
 .ap-time{ color:#eaeaea; font-size:13px; margin-left:8px; white-space:nowrap; font-variant-numeric:tabular-nums; }
 .ap-vol{ display:flex; align-items:center; }
-.ap-menu{ position:absolute; right:12px; bottom:60px; z-index:16; background:rgba(24,24,26,.97); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border-radius:12px; padding:6px; min-width:150px; box-shadow:0 10px 30px rgba(0,0,0,.55); display:none; }
+.ap-menu{ position:absolute; right:12px; bottom:60px; z-index:16; background:rgba(24,24,26,.97); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border-radius:12px; padding:6px; min-width:150px; box-shadow:0 10px 30px rgba(0,0,0,.55); display:none; max-height:calc(100% - 72px); overflow-y:auto; }
 .aniplayer-stage.ap-menu-open .ap-menu{ display:block; }
 .ap-mi{ padding:9px 14px; color:#ddd; font-size:13px; border-radius:7px; cursor:pointer; white-space:nowrap; }
 .ap-mi:hover{ background:rgba(255,255,255,.12); color:#fff; }
@@ -738,6 +738,15 @@ function file_video(path) {
 .ap-mi{ display:flex; align-items:center; gap:12px; }
 .ap-mi .mdui-icon{ font-size:20px; color:#cbcbd0; }
 .ap-mi.active, .ap-mi.active .mdui-icon{ color:#ff7dcc; }
+/* 带开关的菜单项 */
+.ap-mi-sw{ justify-content:space-between; }
+.ap-mi-sw .l{ display:inline-flex; align-items:center; gap:12px; color:#ddd; }
+.ap-switch{ flex:0 0 auto; width:34px; height:18px; border-radius:10px; background:rgba(255,255,255,.22); position:relative; transition:background .2s; }
+.ap-switch.on{ background:#ff4fa3; }
+.ap-switch::after{ content:""; position:absolute; top:2px; left:2px; width:14px; height:14px; border-radius:50%; background:#fff; transition:left .2s; }
+.ap-switch.on::after{ left:18px; }
+/* 网页全屏（填满浏览器视口，非系统全屏） */
+.aniplayer-stage.ap-webfull{ position:fixed; inset:0; z-index:9999; width:100vw; height:100vh; height:100dvh; max-height:none; border-radius:0; aspect-ratio:auto; }
 /* 统计面板 */
 .ap-stats{ position:absolute; top:62px; left:16px; z-index:22; width:280px; max-width:72%; background:rgba(10,10,12,.88); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.09); border-radius:14px; padding:14px 16px; color:#dcdce2; font-size:13px; display:none; }
 .aniplayer-stage.ap-stats-open .ap-stats{ display:block; }
@@ -748,7 +757,25 @@ function file_video(path) {
 .ap-spark{ width:100%; height:34px; display:block; margin:2px 0 8px; }
 .ap-stats-row{ display:flex; justify-content:space-between; padding:3px 0; color:#a9a9b2; }
 .ap-stats-row b{ color:#fff; font-weight:600; font-variant-numeric:tabular-nums; }
-@media(max-width:600px){ .ap-title{ font-size:13px; } .ap-time{ font-size:12px; } .ap-top-spacer{ display:none; } }
+@media(max-width:600px){
+  .ap-title{ font-size:13px; }
+  .ap-top-spacer{ display:none; }
+  .ap-vol{ display:none; }                       /* 手机隐藏音量控件，用设备音量键 */
+  .ap-bottom{ padding:0 8px 8px; }
+  .ap-btn{ width:33px; height:33px; }
+  .ap-btn .mdui-icon{ font-size:21px; }
+  .ap-l, .ap-r{ gap:0; }
+  .ap-time{ font-size:11px; margin-left:5px; }
+  .ap-speed{ padding:0 5px; font-size:13px; }
+  .ap-back{ padding:7px 12px 7px 9px; font-size:13px; }
+  .ap-bigplay{ width:64px; height:64px; }
+  .ap-bigplay .mdui-icon{ font-size:38px; }
+}
+@media(max-width:380px){
+  .ap-btn{ width:30px; height:30px; }
+  .ap-btn .mdui-icon{ font-size:20px; }
+  .ap-time{ font-size:10px; margin-left:3px; }
+}
 </style>
 <div class="mdui-container-fluid">
     <div class="aniplayer">
@@ -776,14 +803,11 @@ function file_video(path) {
           <div class="ap-progress" id="apProg"><div class="ap-played" id="apPlayed"></div><div class="ap-thumb" id="apThumb"></div><div class="ap-tip" id="apTip">0:00</div></div>
           <div class="ap-row">
             <div class="ap-l">
-              <button class="ap-btn" id="apB10" title="快退 10 秒"><i class="mdui-icon material-icons">replay_10</i></button>
               <button class="ap-btn" id="apPlay"><i class="mdui-icon material-icons">play_arrow</i></button>
-              <button class="ap-btn" id="apF10" title="快進 10 秒"><i class="mdui-icon material-icons">forward_10</i></button>
               <span class="ap-time"><span id="apCur">0:00</span> / <span id="apDur">0:00</span></span>
             </div>
             <div class="ap-r">
               <button class="ap-btn" id="apList" title="選集"><i class="mdui-icon material-icons">playlist_play</i></button>
-              <button class="ap-btn" id="apSub" title="字幕"><i class="mdui-icon material-icons">subtitles</i></button>
               <button class="ap-btn ap-speed" id="apSpeed" title="播放速度">1×</button>
               <div class="ap-vol" id="apVolWrap">
                 <div class="ap-volpop" id="apVolPop">
@@ -794,6 +818,7 @@ function file_video(path) {
                 <button class="ap-btn" id="apMute" title="音量"><i class="mdui-icon material-icons">volume_up</i></button>
               </div>
               <button class="ap-btn" id="apMore" title="更多"><i class="mdui-icon material-icons">more_vert</i></button>
+              <button class="ap-btn" id="apWebFull" title="網頁全屏"><i class="mdui-icon material-icons">crop_free</i></button>
               <button class="ap-btn" id="apFull" title="全螢幕"><i class="mdui-icon material-icons">fullscreen</i></button>
             </div>
           </div>
@@ -826,8 +851,9 @@ function file_video(path) {
     var autoNext = localStorage.getItem('ap_autonext') !== '0';   // 自动播放下一集（默认开，记忆到 localStorage）
     // 生命周期清理：进入时先拆掉上一次运行残留的 document 监听器/定时器/DPlayer（防 SPA 跨页累积泄漏）
     if (window.__apCleanup) { try { window.__apCleanup(); } catch (e) { } }
-    var docHandlers = [];
+    var docHandlers = [], winHandlers = [];
     function onDoc(type, fn, opts) { document.addEventListener(type, fn, opts); docHandlers.push([type, fn, opts]); }
+    function onWin(type, fn, opts) { window.addEventListener(type, fn, opts); winHandlers.push([type, fn, opts]); }
     var elPlay = gid('apPlay'), elCur = gid('apCur'), elDur = gid('apDur'),
         elProg = gid('apProg'), elPlayed = gid('apPlayed'), elThumb = gid('apThumb'), elTip = gid('apTip'),
         elSpeed = gid('apSpeed'), elMute = gid('apMute'), elVol = gid('apVol'), elVolVal = gid('apVolVal'), elMenu = gid('apMenu'),
@@ -912,7 +938,7 @@ function file_video(path) {
         v.addEventListener('waiting', function () { if (v === player.video) stage.classList.add('ap-loading'); });
         v.addEventListener('seeking', function () { if (v === player.video) stage.classList.add('ap-loading'); });
         ['playing', 'canplay', 'seeked'].forEach(function (ev) { v.addEventListener(ev, function () { if (v === player.video) stage.classList.remove('ap-loading'); }); });
-        v.addEventListener('ended', function () { if (v === player.video) playNext(); });
+        v.addEventListener('ended', function () { if (v !== player.video) return; if (autoNext && !variants.length) { pendingAutoNext = true; return; } playNext(); });
         if (v.requestVideoFrameCallback) {
             var rvfc = function (now) { if (v !== player.video) return; frames++; if (!fpsT0) fpsT0 = now; if (now - fpsT0 >= 1000) { lastFps = frames * 1000 / (now - fpsT0); frames = 0; fpsT0 = now; } v.requestVideoFrameCallback(rvfc); };
             v.requestVideoFrameCallback(rvfc);
@@ -941,19 +967,20 @@ function file_video(path) {
 
     // ---- 控件绑定（只绑一次，全部引用 player.video）----
     elPlay.onclick = togglePlay; gid('apBig').onclick = togglePlay;
-    gid('apB10').onclick = function () { var v = player.video; if (v) v.currentTime = Math.max(0, v.currentTime - 10); };
-    gid('apF10').onclick = function () { var v = player.video; if (v) v.currentTime = Math.min(v.duration || 1e9, v.currentTime + 10); };
     var seeking = false;
     elProg.addEventListener('mousedown', function (e) { seeking = true; seekAt(e.clientX); });
     onDoc('mousemove', function (e) { if (seeking) seekAt(e.clientX); });
     onDoc('mouseup', function () { seeking = false; });
     elProg.addEventListener('mousemove', function (e) { var v = player.video; var rc = elProg.getBoundingClientRect(); var r = Math.min(1, Math.max(0, (e.clientX - rc.left) / rc.width)); elTip.style.left = (r * 100) + '%'; elTip.textContent = fmt(r * ((v && v.duration) || 0)); });
+    // 移动端触摸拖动进度条（去掉±10s后手机也能精细拖动定位）
+    elProg.addEventListener('touchstart', function (e) { seeking = true; if (e.touches[0]) seekAt(e.touches[0].clientX); }, { passive: true });
+    elProg.addEventListener('touchmove', function (e) { if (seeking && e.touches[0]) { seekAt(e.touches[0].clientX); e.preventDefault(); } }, { passive: false });
+    onDoc('touchend', function () { seeking = false; });
     elVol.addEventListener('input', function () { var v = player.video; if (v) { v.muted = false; v.volume = this.value / 100; } });
     // 喇叭按钮 = 开/关音量弹窗（可点击关闭）；弹窗内的按钮 = 静音
     elMute.onclick = function (e) { e.stopPropagation(); stage.classList.remove('ap-menu-open'); elVolWrap.classList.toggle('ap-volopen'); };
     if (elMuteToggle) elMuteToggle.onclick = function (e) { e.stopPropagation(); var v = player.video; if (v) v.muted = !v.muted; };
     gid('apVolPop').addEventListener('click', function (e) { e.stopPropagation(); });
-    gid('apSub').onclick = function () { subOn = !subOn; var stx = stage.querySelector('.dplayer-subtitle'); if (stx) stx.style.display = subOn ? '' : 'none'; this.style.opacity = subOn ? '1' : '.45'; };
     var speeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
     elSpeed.onclick = function (e) {
         e.stopPropagation(); stage.classList.remove('ap-panel-open', 'ap-stats-open'); elVolWrap.classList.remove('ap-volopen');
@@ -970,7 +997,8 @@ function file_video(path) {
         elMenu.setAttribute('data-menu', 'more');
         elMenu.innerHTML =
             '<div class="ap-menu-title">更多</div>' +
-            '<div class="ap-mi' + (autoNext ? ' active' : '') + '" id="miAuto"><i class="mdui-icon material-icons">' + (autoNext ? 'toggle_on' : 'toggle_off') + '</i>自動播放下一集</div>' +
+            '<div class="ap-mi ap-mi-sw" id="miAuto"><span class="l"><i class="mdui-icon material-icons">skip_next</i>自動連播</span><span class="ap-switch' + (autoNext ? ' on' : '') + '"></span></div>' +
+            '<div class="ap-mi ap-mi-sw" id="miSub"><span class="l"><i class="mdui-icon material-icons">subtitles</i>字幕</span><span class="ap-switch' + (subOn ? ' on' : '') + '"></span></div>' +
             '<div class="ap-mi" id="miShot"><i class="mdui-icon material-icons">photo_camera</i>截圖</div>' +
             '<div class="ap-mi" id="miStats"><i class="mdui-icon material-icons">show_chart</i>顯示統計</div>' +
             '<div class="ap-mi" id="miPip"><i class="mdui-icon material-icons">picture_in_picture_alt</i>畫中畫</div>';
@@ -978,9 +1006,14 @@ function file_video(path) {
             ev.stopPropagation();
             autoNext = !autoNext;
             try { localStorage.setItem('ap_autonext', autoNext ? '1' : '0'); } catch (e) { }
-            this.classList.toggle('active', autoNext);
-            this.querySelector('.mdui-icon').textContent = autoNext ? 'toggle_on' : 'toggle_off';
-            try { mdui.snackbar({ message: autoNext ? '已開啟：播放完自動下一集' : '已關閉自動播放', position: 'right-top', timeout: 1500 }); } catch (e) { }
+            var sw = this.querySelector('.ap-switch'); if (sw) sw.classList.toggle('on', autoNext);
+            try { mdui.snackbar({ message: autoNext ? '已開啟自動連播' : '已關閉自動連播', position: 'right-top', timeout: 1500 }); } catch (e) { }
+        };
+        gid('miSub').onclick = function (ev) {
+            ev.stopPropagation();
+            subOn = !subOn;
+            var stx = stage.querySelector('.dplayer-subtitle'); if (stx) stx.style.display = subOn ? '' : 'none';
+            var sw = this.querySelector('.ap-switch'); if (sw) sw.classList.toggle('on', subOn);
         };
         gid('miShot').onclick = function () { takeShot(); stage.classList.remove('ap-menu-open'); };
         gid('miStats').onclick = function () { stage.classList.toggle('ap-stats-open'); stage.classList.remove('ap-menu-open'); };
@@ -995,6 +1028,7 @@ function file_video(path) {
         var d = document;
         if (d.fullscreenElement || d.webkitFullscreenElement) { var ex = d.exitFullscreen || d.webkitExitFullscreen; if (ex) ex.call(d); }
         else {
+            if (stage.classList.contains('ap-webfull')) setWebFull(false);   // 系统全屏与网页全屏互斥，避免叠加
             var rq = stage.requestFullscreen || stage.webkitRequestFullscreen;
             if (rq) { try { rq.call(stage); } catch (e) { } }
             else { var v = player.video; if (v && v.webkitEnterFullscreen) v.webkitEnterFullscreen(); }   // iOS 回退到原生 video 全屏
@@ -1002,6 +1036,18 @@ function file_video(path) {
     };
     function apFsSync() { var b = gid('apFull'); if (b) b.querySelector('.mdui-icon').textContent = (document.fullscreenElement || document.webkitFullscreenElement) ? 'fullscreen_exit' : 'fullscreen'; }
     onDoc('fullscreenchange', apFsSync); onDoc('webkitfullscreenchange', apFsSync);
+    // 网页全屏：填满浏览器视口（非系统全屏）
+    function setWebFull(on) {
+        if (on && (document.fullscreenElement || document.webkitFullscreenElement)) { var ex = document.exitFullscreen || document.webkitExitFullscreen; if (ex) try { ex.call(document); } catch (e) { } }   // 与系统全屏互斥
+        stage.classList.toggle('ap-webfull', on);
+        document.body.style.overflow = on ? 'hidden' : '';
+        var b = gid('apWebFull'); if (b) b.querySelector('.mdui-icon').textContent = on ? 'settings_overscan' : 'crop_free';
+    }
+    gid('apWebFull').onclick = function (e) { e.stopPropagation(); setWebFull(!stage.classList.contains('ap-webfull')); };
+    // Esc 退出网页全屏（若正处于系统全屏，先让浏览器退出系统全屏，本次不动网页全屏）
+    onDoc('keydown', function (e) { if (e.key === 'Escape' && stage.classList.contains('ap-webfull') && !(document.fullscreenElement || document.webkitFullscreenElement)) setWebFull(false); });
+    // 浏览器/后退导航离开时，恢复 body 滚动，避免目录页被锁死
+    onWin('popstate', function () { if (stage.classList.contains('ap-webfull')) setWebFull(false); document.body.style.overflow = ''; });
     gid('apList').onclick = function (e) { e.stopPropagation(); stage.classList.remove('ap-menu-open', 'ap-stats-open'); elVolWrap.classList.remove('ap-volopen'); stage.classList.toggle('ap-panel-open'); };
     gid('apPanelClose').onclick = function (e) { e.stopPropagation(); stage.classList.remove('ap-panel-open'); };
     gid('apEpPanel').addEventListener('click', function (e) { e.stopPropagation(); });
@@ -1017,14 +1063,17 @@ function file_video(path) {
         togglePlay();
     });
     onDoc('click', function () { stage.classList.remove('ap-menu-open', 'ap-stats-open'); elVolWrap.classList.remove('ap-volopen'); });
-    stage.addEventListener('mousemove', function () { showControls(); });
+    stage.addEventListener('mousemove', function () { if (player.dp) player.dp.focus = true; showControls(); });   // 保持 DPlayer 键盘热键(方向键快进快退)激活
+    stage.addEventListener('click', function () { if (player.dp) player.dp.focus = true; }, true);
     stage.addEventListener('touchstart', function () { touchReveal = !stage.classList.contains('ap-active'); showControls(); }, { passive: true });
-    gid('apBack').onclick = function () { history.back(); };
+    gid('apBack').onclick = function () { if (stage.classList.contains('ap-webfull')) setWebFull(false); history.back(); };
 
     // 注册清理钩子：下次进入播放页或本页卸载时拆除本次运行的 document 监听器 / 定时器 / DPlayer
     window.__apCleanup = function () {
         docHandlers.forEach(function (h) { document.removeEventListener(h[0], h[1], h[2]); });
+        winHandlers.forEach(function (h) { window.removeEventListener(h[0], h[1], h[2]); });
         if (window.__apStatsTimer) { clearInterval(window.__apStatsTimer); window.__apStatsTimer = null; }
+        try { document.body.style.overflow = ''; } catch (e) { }
         try { if (player.dp) player.dp.destroy(); } catch (e) { }
     };
 
@@ -1074,13 +1123,15 @@ function file_video(path) {
     }
 
     var variants = [];  // [{label, eps:[{name,ep}]}]
+    var pendingAutoNext = false;   // 若 ended 早于选集列表返回，待列表就绪后补播
     // 播放完自动下一集（同一分类内的下一集）
     function playNext() {
         if (!autoNext || !variants.length) return false;
-        var grp = variants.filter(function (v) { return v.eps.some(function (e) { return e.name === curName; }); })[0];
+        var grp = variants.filter(function (v) { return v.eps.some(function (e) { return e.name === curName; }); })[0]
+            || variants.filter(function (v) { return v.label === apDub(curName); })[0];   // 兜底：按配音分类找组
         if (!grp) return false;
-        var idx = -1;
-        for (var k = 0; k < grp.eps.length; k++) { if (grp.eps[k].name === curName) { idx = k; break; } }
+        var curEp = apEp(curName), idx = -1;
+        for (var k = 0; k < grp.eps.length; k++) { if (grp.eps[k].name === curName || (curEp != null && grp.eps[k].ep === curEp)) { idx = k; break; } }
         if (idx < 0 || idx + 1 >= grp.eps.length) { try { mdui.snackbar({ message: '已是最後一集', position: 'right-top', timeout: 1500 }); } catch (e) { } return false; }
         switchEpisode(grp.eps[idx + 1].name);
         return true;
@@ -1143,14 +1194,19 @@ function file_video(path) {
         labels.sort(function (a, b) { if (a === '原版') return -1; if (b === '原版') return 1; return a < b ? -1 : 1; });
         variants = labels.map(function (l) {
             var eps = byLabel[l].sort(function (a, b) { return (a.ep == null ? 1e9 : a.ep) - (b.ep == null ? 1e9 : b.ep); });
-            // 同集去重（同画质/字幕多文件时避免出现重复集号 tile）
+            // 同集去重（同画质/字幕多文件时避免出现重复集号 tile）；当前播放文件优先保留
             var seenEp = {}, uniq = [];
-            eps.forEach(function (e) { if (e.ep == null) { uniq.push(e); return; } if (seenEp[e.ep]) return; seenEp[e.ep] = 1; uniq.push(e); });
+            eps.forEach(function (e) {
+                if (e.ep == null) { uniq.push(e); return; }
+                if (seenEp[e.ep] != null) { if (e.name === curName) uniq[seenEp[e.ep]] = e; return; }
+                seenEp[e.ep] = uniq.length; uniq.push(e);
+            });
             return { label: l, eps: uniq };
         });
         var total = variants.reduce(function (n, v) { return n + v.eps.length; }, 0);
         if (total < 2 && variants.length < 2) { hideList(); return; }
         renderAll();
+        if (pendingAutoNext) { pendingAutoNext = false; if (player.video && player.video.ended) playNext(); }
     });
 }
 
