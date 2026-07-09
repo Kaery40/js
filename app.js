@@ -357,7 +357,7 @@ function list(path) {
     var content = `
     ${searchbar}
 	<div id="head_md" class="mdui-typo" style="display:none;padding: 20px 0;"></div>
-	 <div class="mdui-row"> 
+	 <div class="mdui-row">
 	  <ul class="mdui-list"> 
 	   <li class="mdui-list-item th"> 
 	    <div class="mdui-col-xs-12 mdui-col-sm-7" onclick="sortFileList('sortname')">
@@ -619,27 +619,188 @@ ${fileName_mobile}
 
 // 文件展示 视频 |mp4|webm|avi|
 function file_video(path) {
+    var safeDecode = function (s) { try { return decodeURIComponent(s); } catch (e) { return s; } };
     var linkComp = path.split('/');
     var encodedLink = window.location.origin;
     let fileName_mobile = ""
     if (screen.width < 570) {
-        fileName_mobile = `<p style="overflow-wrap: break-word;">${decodeURIComponent(linkComp.at(-1).replace(/.mp4|.webm|.avi/g, ""))}</p>`
+        fileName_mobile = `<p id="apFileName" style="overflow-wrap: break-word;">${safeDecode(linkComp.at(-1) || "").replace(/\.[^.]+$/, "")}</p>`
     }
-    for (i = 1; i < linkComp.length; i++) {
-        var pathcomp = decodeURIComponent(linkComp[i])
+    for (var i = 1; i < linkComp.length; i++) {
+        var pathcomp = safeDecode(linkComp[i]);
         pathcomp = encodeURIComponent(pathcomp);
         encodedLink = encodedLink + '/' + pathcomp;
     }
     encodedLink = encodedLink.replaceAll(/%25/g, "%");
-    var subtitle = encodedLink.split(/(.mp4)|(.webm)|(.avi)/)[0] + '.vtt'
+    var subtitle = encodedLink.replace(/\.[^.\/]+$/, "") + '.vtt';
     var vlc = 'vlc://' + encodedLink;
     var share = encodedLink + "?a=view";
-    var playBtn = `<a href="${vlc}"><button class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-deep-purple-900"><i class="mdui-icon material-icons">&#xe038;</i> 在 VLC media player 中播放</button></a>`;
+    // 番剧标题（去扩展名/[ANi]/[标签]）
+    var rawName = linkComp.at(-1) || "";
+    var title = (function (n) {
+        var s = safeDecode(n);
+        s = s.replace(/\.[^.]+$/, "").replace(/^\s*\[[^\]]*\]\s*/, "").replace(/\[[^\]]*\]/g, " ").replace(/\s+/g, " ").trim();
+        return s || n;
+    })(rawName);
+
+    var playBtn = `<a href="${vlc}" id="apVlcLink"><button class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-deep-purple-900"><i class="mdui-icon material-icons">&#xe038;</i> 在 VLC media player 中播放</button></a>`;
     var content = `
+<style>
+.aniplayer{ margin:16px 0 8px; }
+.aniplayer-stage{ position:relative; border-radius:14px; overflow:hidden; background:#000; box-shadow:0 12px 40px rgba(0,0,0,.5); aspect-ratio:16/9; max-height:82vh; user-select:none; -webkit-user-select:none; }
+.aniplayer-stage:fullscreen{ border-radius:0; max-height:none; height:100%; width:100%; aspect-ratio:auto; }
+#dplayer{ position:absolute; inset:0; width:100%; height:100%; }
+#dplayer .dplayer, #dplayer .dplayer-video-wrap, #dplayer video{ width:100%!important; height:100%!important; }
+#dplayer video{ object-fit:contain; background:#000; }
+#dplayer .dplayer-controller, #dplayer .dplayer-controller-mask, #dplayer .dplayer-mobile-play, #dplayer .dplayer-bezel, #dplayer .dplayer-notice{ display:none!important; }
+#dplayer .dplayer-subtitle{ bottom:76px!important; z-index:4; }
+.ap-scrim{ position:absolute; left:0; right:0; pointer-events:none; opacity:0; transition:opacity .25s; z-index:5; }
+.ap-scrim-top{ top:0; height:110px; background:linear-gradient(180deg,rgba(0,0,0,.6),transparent); }
+.ap-scrim-bottom{ bottom:0; height:150px; background:linear-gradient(0deg,rgba(0,0,0,.78),transparent); }
+.aniplayer-stage.ap-active .ap-scrim{ opacity:1; }
+.ap-top{ position:absolute; top:0; left:0; right:0; z-index:12; display:flex; align-items:center; gap:12px; padding:14px 16px; opacity:0; transform:translateY(-6px); transition:.25s; pointer-events:none; }
+.aniplayer-stage.ap-active .ap-top{ opacity:1; transform:none; }
+.ap-back{ pointer-events:auto; flex:0 0 auto; display:inline-flex; align-items:center; gap:6px; border:none; cursor:pointer; color:#fff; background:rgba(30,30,32,.55); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); border-radius:22px; padding:8px 15px 8px 11px; font-size:14px; }
+.ap-back:hover{ background:rgba(70,70,74,.85); }
+.ap-back .mdui-icon{ font-size:20px; }
+.ap-title{ flex:1; text-align:center; color:#fff; font-size:16px; font-weight:600; text-shadow:0 1px 8px rgba(0,0,0,.8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ap-top-spacer{ flex:0 0 88px; }
+.ap-center{ position:absolute; inset:0; z-index:8; display:flex; align-items:center; justify-content:center; pointer-events:none; }
+.ap-bigplay{ pointer-events:auto; width:76px; height:76px; border-radius:50%; border:none; cursor:pointer; color:#fff; background:rgba(20,20,22,.5); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; transition:transform .2s, background .2s, opacity .2s; }
+.ap-bigplay:hover{ transform:scale(1.08); background:rgba(255,79,163,.75); }
+.ap-bigplay .mdui-icon{ font-size:44px; }
+.aniplayer-stage.ap-playing .ap-bigplay{ opacity:0; pointer-events:none; }
+.ap-spinner{ position:absolute; width:52px; height:52px; border-radius:50%; border:3px solid rgba(255,255,255,.22); border-top-color:#fff; animation:ap-spin .8s linear infinite; display:none; }
+.aniplayer-stage.ap-loading .ap-spinner{ display:block; }
+.aniplayer-stage.ap-loading .ap-bigplay{ opacity:0; }
+@keyframes ap-spin{ to{ transform:rotate(360deg); } }
+.ap-bottom{ position:absolute; left:0; right:0; bottom:0; z-index:12; padding:0 14px 10px; opacity:0; transform:translateY(8px); transition:.25s; pointer-events:none; }
+.aniplayer-stage.ap-active .ap-bottom{ opacity:1; transform:none; pointer-events:auto; }
+.ap-progress{ position:relative; height:15px; display:flex; align-items:center; cursor:pointer; }
+.ap-progress::before{ content:""; position:absolute; left:0; right:0; height:4px; border-radius:2px; background:rgba(255,255,255,.28); transition:height .12s; }
+.ap-progress:hover::before{ height:6px; }
+.ap-played{ position:absolute; left:0; height:4px; border-radius:2px; background:linear-gradient(90deg,#ff7dcc,#ff4fa3); width:0; transition:height .12s; }
+.ap-progress:hover .ap-played{ height:6px; }
+.ap-thumb{ position:absolute; left:0; width:13px; height:13px; border-radius:50%; background:#fff; box-shadow:0 0 6px rgba(0,0,0,.5); transform:translateX(-50%) scale(0); transition:transform .12s; }
+.ap-progress:hover .ap-thumb{ transform:translateX(-50%) scale(1); }
+.ap-tip{ position:absolute; bottom:20px; left:0; transform:translateX(-50%); background:rgba(0,0,0,.82); color:#fff; font-size:12px; padding:2px 7px; border-radius:4px; pointer-events:none; opacity:0; white-space:nowrap; }
+.ap-progress:hover .ap-tip{ opacity:1; }
+.ap-row{ display:flex; align-items:center; justify-content:space-between; margin-top:2px; }
+.ap-l,.ap-r{ display:flex; align-items:center; gap:2px; }
+.ap-btn{ border:none; background:none; color:#fff; cursor:pointer; width:38px; height:38px; border-radius:9px; display:inline-flex; align-items:center; justify-content:center; transition:background .15s; }
+.ap-btn:hover{ background:rgba(255,255,255,.16); }
+.ap-btn .mdui-icon{ font-size:23px; }
+.ap-speed{ width:auto; padding:0 8px; font-size:14px; font-weight:700; }
+.ap-time{ color:#eaeaea; font-size:13px; margin-left:8px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.ap-vol{ display:flex; align-items:center; }
+.ap-menu{ position:absolute; right:12px; bottom:60px; z-index:16; background:rgba(24,24,26,.97); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border-radius:12px; padding:6px; min-width:150px; box-shadow:0 10px 30px rgba(0,0,0,.55); display:none; }
+.aniplayer-stage.ap-menu-open .ap-menu{ display:block; }
+.ap-mi{ padding:9px 14px; color:#ddd; font-size:13px; border-radius:7px; cursor:pointer; white-space:nowrap; }
+.ap-mi:hover{ background:rgba(255,255,255,.12); color:#fff; }
+.ap-mi.active{ color:#ff7dcc; }
+.ap-eppanel{ position:absolute; top:0; right:0; bottom:0; width:330px; max-width:82%; background:rgba(16,16,18,.97); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); z-index:18; transform:translateX(102%); transition:transform .28s ease; display:flex; flex-direction:column; box-shadow:-8px 0 30px rgba(0,0,0,.55); }
+.aniplayer-stage.ap-panel-open .ap-eppanel{ transform:none; }
+.ap-eppanel-head{ display:flex; align-items:center; justify-content:space-between; padding:15px 18px; color:#fff; font-weight:600; border-bottom:1px solid rgba(255,255,255,.08); }
+.ap-eppanel-head .sub{ font-size:.78em; color:#9a9aa4; font-weight:400; margin-left:6px; }
+.ap-eppanel-close{ border:none; background:none; color:#bbb; cursor:pointer; display:inline-flex; }
+.ap-eppanel-body{ padding:14px 16px; overflow-y:auto; }
+.ap-epgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(52px,1fr)); gap:8px; }
+.ap-ep{ display:block; text-align:center; padding:8px 4px; border-radius:6px; background:rgba(255,255,255,.05); color:#c2c2c8; font-size:.88em; text-decoration:none; cursor:pointer; border:1px solid rgba(255,255,255,.08); transition:background .15s, color .15s, border-color .15s; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ap-ep:hover{ background:rgba(255,255,255,.12); color:#fff; }
+.ap-ep.active{ background:rgba(255,79,163,.16); color:#ff6ab8; border-color:#ff6ab8; }
+.ap-episodes{ max-width:980px; margin:20px auto 4px; }
+.ap-eps-head{ color:#eaeaea; font-weight:600; font-size:1em; margin:0 0 12px; }
+.ap-eps-sub{ font-size:.8em; color:#9a9aa4; margin-left:8px; font-weight:400; }
+.ap-eps-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(48px,1fr)); gap:8px; }
+.ap-epgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(52px,1fr)); gap:8px; }
+.ap-eptabs{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+.ap-eptab{ padding:5px 14px; border-radius:16px; background:rgba(255,255,255,.06); color:#c2c2c8; font-size:.82em; cursor:pointer; border:1px solid rgba(255,255,255,.1); white-space:nowrap; transition:background .15s,color .15s,border-color .15s; }
+.ap-eptab:hover{ background:rgba(255,255,255,.12); color:#fff; }
+.ap-eptab.active{ background:rgba(255,79,163,.16); color:#ff6ab8; border-color:#ff6ab8; }
+/* 音量弹窗 */
+.ap-vol{ position:relative; }
+.ap-volpop{ position:absolute; left:50%; bottom:44px; transform:translateX(-50%) translateY(5px); width:92px; padding:6px 8px 7px; background:rgba(28,28,30,.97); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); border-radius:9px; box-shadow:0 7px 18px rgba(0,0,0,.55); opacity:0; pointer-events:none; transition:opacity .18s, transform .18s; }
+.ap-vol.ap-volopen .ap-volpop{ opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0); }
+.ap-volpop-head{ display:flex; justify-content:space-between; align-items:center; gap:4px; margin-bottom:4px; }
+.ap-volpop-head .lab{ color:#c8c8ce; font-size:10px; }
+.ap-volmute{ border:none; background:none; color:#c8c8ce; cursor:pointer; display:inline-flex; align-items:center; padding:1px; margin-left:auto; }
+.ap-volmute .mdui-icon{ font-size:13px; }
+.ap-volmute:hover{ color:#fff; }
+.ap-volpop-head #apVolVal{ color:#fff; font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; }
+.ap-volticks{ display:flex; justify-content:space-between; align-items:flex-end; height:4px; padding:0 1px; margin-bottom:4px; }
+.ap-volticks i{ width:1px; height:4px; background:rgba(255,255,255,.32); }
+.ap-volbar{ -webkit-appearance:none; appearance:none; width:100%; margin:0; height:3px; border-radius:3px; cursor:pointer; background:linear-gradient(90deg,#e3b341 var(--v,100%), rgba(255,255,255,.22) var(--v,100%)); }
+.ap-volbar::-webkit-slider-thumb{ -webkit-appearance:none; width:9px; height:9px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.5); }
+.ap-volbar::-moz-range-thumb{ width:9px; height:9px; border:none; border-radius:50%; background:#fff; }
+.ap-volbar::-moz-range-thumb{ width:16px; height:16px; border:none; border-radius:50%; background:#fff; }
+/* 更多菜单（带图标） */
+.ap-menu-title{ color:#8a8a90; font-size:12px; padding:6px 12px 6px; }
+.ap-mi{ display:flex; align-items:center; gap:12px; }
+.ap-mi .mdui-icon{ font-size:20px; color:#cbcbd0; }
+.ap-mi.active, .ap-mi.active .mdui-icon{ color:#ff7dcc; }
+/* 统计面板 */
+.ap-stats{ position:absolute; top:62px; left:16px; z-index:22; width:280px; max-width:72%; background:rgba(10,10,12,.88); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.09); border-radius:14px; padding:14px 16px; color:#dcdce2; font-size:13px; display:none; }
+.aniplayer-stage.ap-stats-open .ap-stats{ display:block; }
+.ap-stats-head{ display:flex; align-items:center; justify-content:space-between; color:#e3b341; font-weight:600; letter-spacing:2px; margin-bottom:8px; }
+.ap-stats-head .t{ display:inline-flex; align-items:center; gap:6px; }
+.ap-stats-head .mdui-icon{ font-size:18px; }
+.ap-stats-close{ border:none; background:none; color:#999; cursor:pointer; display:inline-flex; }
+.ap-spark{ width:100%; height:34px; display:block; margin:2px 0 8px; }
+.ap-stats-row{ display:flex; justify-content:space-between; padding:3px 0; color:#a9a9b2; }
+.ap-stats-row b{ color:#fff; font-weight:600; font-variant-numeric:tabular-nums; }
+@media(max-width:600px){ .ap-title{ font-size:13px; } .ap-time{ font-size:12px; } .ap-top-spacer{ display:none; } }
+</style>
 <div class="mdui-container-fluid">
-	<br>
-    <div class="mdui-video-fluid mdui-center" id="dplayer"></div>
-    <br>
+    <div class="aniplayer">
+      <div class="aniplayer-stage ap-active" id="apStage">
+        <div class="mdui-video-fluid" id="dplayer"></div>
+        <div class="ap-scrim ap-scrim-top"></div>
+        <div class="ap-scrim ap-scrim-bottom"></div>
+        <div class="ap-top">
+          <button class="ap-back" id="apBack"><i class="mdui-icon material-icons">arrow_back</i><span>返回</span></button>
+          <div class="ap-title">${title}</div>
+          <div class="ap-top-spacer"></div>
+        </div>
+        <div class="ap-center"><div class="ap-spinner"></div><button class="ap-bigplay" id="apBig"><i class="mdui-icon material-icons">play_arrow</i></button></div>
+        <div class="ap-menu" id="apMenu"></div>
+        <div class="ap-eppanel" id="apEpPanel">
+          <div class="ap-eppanel-head"><span>選集 <span class="sub" id="apPanelSub"></span></span><button class="ap-eppanel-close" id="apPanelClose"><i class="mdui-icon material-icons">close</i></button></div>
+          <div class="ap-eppanel-body" id="apPanelBody"></div>
+        </div>
+        <div class="ap-stats" id="apStats">
+          <div class="ap-stats-head"><span class="t"><i class="mdui-icon material-icons">show_chart</i> STATS</span><button class="ap-stats-close" id="apStatsClose"><i class="mdui-icon material-icons">close</i></button></div>
+          <canvas class="ap-spark" id="apSpark" width="248" height="34"></canvas>
+          <div id="apStatsRows"></div>
+        </div>
+        <div class="ap-bottom">
+          <div class="ap-progress" id="apProg"><div class="ap-played" id="apPlayed"></div><div class="ap-thumb" id="apThumb"></div><div class="ap-tip" id="apTip">0:00</div></div>
+          <div class="ap-row">
+            <div class="ap-l">
+              <button class="ap-btn" id="apB10" title="快退 10 秒"><i class="mdui-icon material-icons">replay_10</i></button>
+              <button class="ap-btn" id="apPlay"><i class="mdui-icon material-icons">play_arrow</i></button>
+              <button class="ap-btn" id="apF10" title="快進 10 秒"><i class="mdui-icon material-icons">forward_10</i></button>
+              <span class="ap-time"><span id="apCur">0:00</span> / <span id="apDur">0:00</span></span>
+            </div>
+            <div class="ap-r">
+              <button class="ap-btn" id="apList" title="選集"><i class="mdui-icon material-icons">playlist_play</i></button>
+              <button class="ap-btn" id="apSub" title="字幕"><i class="mdui-icon material-icons">subtitles</i></button>
+              <button class="ap-btn ap-speed" id="apSpeed" title="播放速度">1×</button>
+              <div class="ap-vol" id="apVolWrap">
+                <div class="ap-volpop" id="apVolPop">
+                  <div class="ap-volpop-head"><span class="lab">音量</span><span id="apVolVal">100</span><button class="ap-volmute" id="apMuteToggle" title="靜音"><i class="mdui-icon material-icons">volume_up</i></button></div>
+                  <div class="ap-volticks">${new Array(11).fill('<i></i>').join('')}</div>
+                  <input type="range" id="apVol" class="ap-volbar" min="0" max="100" value="100"/>
+                </div>
+                <button class="ap-btn" id="apMute" title="音量"><i class="mdui-icon material-icons">volume_up</i></button>
+              </div>
+              <button class="ap-btn" id="apMore" title="更多"><i class="mdui-icon material-icons">more_vert</i></button>
+              <button class="ap-btn" id="apFull" title="全螢幕"><i class="mdui-icon material-icons">fullscreen</i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="apEpisodes" class="ap-episodes"></div>
     ${fileName_mobile}
     <br> 如果以上片段無法播放，可使用以下 VLC 播放連結 (請使用 Google Chrome)
 	<br>
@@ -647,36 +808,327 @@ function file_video(path) {
 	<!-- 固定标签 -->
 	<div class="mdui-textfield">
 	  <label style="color:white;" class="mdui-textfield-label">下載地址</label>
-	  <input style="color:white;" class="mdui-textfield-input" type="text" value="${encodedLink}"/>
+	  <input id="apDlInput" style="color:white;" class="mdui-textfield-input" type="text" value="${encodedLink}"/>
 	</div>
     <button href="${share}" id="copybt" class="mdui-btn mdui-btn-raised mdui-btn-dense mdui-color-theme-accent mdui-ripple" onClick="copyURI(event)"><i class="mdui-icon material-icons">share</i> Share</button>
-    <button onclick="javascript:location.href='${encodedLink}'" class="mdui-btn mdui-btn-raised mdui-btn-dense mdui-ripple mdui-color-theme-accent"><i class="mdui-icon material-icons">cloud_download</i> Download</button>
+    <button id="apDlBtn" onclick="javascript:location.href='${encodedLink}'" class="mdui-btn mdui-btn-raised mdui-btn-dense mdui-ripple mdui-color-theme-accent"><i class="mdui-icon material-icons">cloud_download</i> Download</button>
     <br>
 </div>
 	`;
     $('#content').html(content);
-    //DP Player implement
-    const dp = new DPlayer({
-        container: document.getElementById('dplayer'),
-        autoplay: false,
-        screenshot: false,
-        airplay: true,
-        theme: '#FF7DCC',
-        preload: 'auto',
-        autoplay: false,
-        hotkey: true,
-        video: {
-            url: encodedLink,
-            pic: 'https://gcore.jsdelivr.net/gh/RyanL-29/aniopen/background.png',
-            type: 'auto',
-        },
-        subtitle: {
-            url: subtitle,
-            type: 'webvtt',
-            fontSize: '1.6em',
-            bottom: '13px',
-            color: '#fff',
+    //DP Player implement — 自定义皮肤 + 原地换源（换集不跳转、不退出全屏）
+    var gid = function (id) { return document.getElementById(id); };
+    var stage = gid('apStage');
+    var player = { dp: null, video: null };
+    var hideTimer = null, subOn = true;
+    var prefRate = 1, prefVol = null, prefMuted = false;   // 换集时保留倍速/音量
+    var headBytes = 0, lastFps = 0, frames = 0, fpsT0 = 0, spark = [], mountSeq = 0;
+    // 生命周期清理：进入时先拆掉上一次运行残留的 document 监听器/定时器/DPlayer（防 SPA 跨页累积泄漏）
+    if (window.__apCleanup) { try { window.__apCleanup(); } catch (e) { } }
+    var docHandlers = [];
+    function onDoc(type, fn, opts) { document.addEventListener(type, fn, opts); docHandlers.push([type, fn, opts]); }
+    var elPlay = gid('apPlay'), elCur = gid('apCur'), elDur = gid('apDur'),
+        elProg = gid('apProg'), elPlayed = gid('apPlayed'), elThumb = gid('apThumb'), elTip = gid('apTip'),
+        elSpeed = gid('apSpeed'), elMute = gid('apMute'), elVol = gid('apVol'), elVolVal = gid('apVolVal'), elMenu = gid('apMenu'),
+        elVolWrap = gid('apVolWrap'), elMuteToggle = gid('apMuteToggle');
+
+    function fmt(t) {
+        if (!isFinite(t) || t < 0) t = 0;
+        t = Math.floor(t);
+        var h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
+        return (h ? h + ':' : '') + (h ? String(m).padStart(2, '0') : String(m)) + ':' + String(s).padStart(2, '0');
+    }
+    function setPlayIcon() { var v = player.video; if (!v) return; elPlay.querySelector('.mdui-icon').textContent = v.paused ? 'play_arrow' : 'pause'; stage.classList.toggle('ap-playing', !v.paused); }
+    function togglePlay() { var v = player.video; if (!v) return; if (v.paused) { var p = v.play(); if (p && p.catch) p.catch(function () { }); } else v.pause(); }
+    function syncVol() {
+        var v = player.video; if (!v) return;
+        var p = Math.round((v.muted ? 0 : v.volume) * 100);
+        elVol.value = p; elVol.style.setProperty('--v', p + '%'); if (elVolVal) elVolVal.textContent = p;
+        var muted = v.muted || v.volume === 0;
+        var icon = muted ? 'volume_off' : (v.volume < 0.5 ? 'volume_down' : 'volume_up');
+        elMute.querySelector('.mdui-icon').textContent = icon;
+        if (elMuteToggle) elMuteToggle.querySelector('.mdui-icon').textContent = icon;
+    }
+    function showControls(keep) {
+        stage.classList.add('ap-active');
+        if (hideTimer) clearTimeout(hideTimer);
+        if (keep) return;
+        hideTimer = setTimeout(function () {
+            var v = player.video;
+            if (v && !v.paused && !stage.classList.contains('ap-menu-open') && !stage.classList.contains('ap-panel-open') && !stage.classList.contains('ap-stats-open') && !elVolWrap.classList.contains('ap-volopen')) stage.classList.remove('ap-active');
+        }, 3000);
+    }
+    function seekAt(x) { var v = player.video; if (!v) return; var rc = elProg.getBoundingClientRect(); var r = Math.min(1, Math.max(0, (x - rc.left) / rc.width)); if (v.duration) v.currentTime = r * v.duration; }
+    function takeShot() {
+        var v = player.video; if (!v) return;
+        try {
+            var c = document.createElement('canvas'); c.width = v.videoWidth || 1280; c.height = v.videoHeight || 720;
+            c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+            var a = document.createElement('a'); a.download = (title || 'screenshot') + '_' + Math.floor(v.currentTime) + 's.png'; a.href = c.toDataURL('image/png'); a.click();
+        } catch (err) { try { mdui.snackbar({ message: '截圖失敗（跨域限制）', position: 'right-top' }); } catch (e) { } }
+    }
+    function drawSpark() {
+        var cv = gid('apSpark'); if (!cv) return; var ctx = cv.getContext('2d'); ctx.clearRect(0, 0, cv.width, cv.height);
+        if (spark.length < 2) return; var mx = Math.max.apply(null, spark) || 1, mn = Math.min.apply(null, spark);
+        ctx.beginPath(); ctx.strokeStyle = '#e3b341'; ctx.lineWidth = 1.5;
+        spark.forEach(function (val, i) { var x = i / (spark.length - 1) * cv.width, y = cv.height - ((val - mn) / ((mx - mn) || 1)) * (cv.height - 4) - 2; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+        ctx.stroke();
+    }
+    function updateStats() {
+        if (!stage.isConnected) { if (window.__apStatsTimer) { clearInterval(window.__apStatsTimer); window.__apStatsTimer = null; } return; }
+        var v = player.video; if (!v || !stage.classList.contains('ap-stats-open')) return;
+        var q = v.getVideoPlaybackQuality ? v.getVideoPlaybackQuality() : null;
+        var buf = 0; try { if (v.buffered.length) buf = v.buffered.end(v.buffered.length - 1) - v.currentTime; } catch (e) { }
+        var avgKbps = (headBytes && v.duration) ? Math.round(headBytes * 8 / v.duration / 1000) : null;
+        var conn = navigator.connection || {};
+        var rows = [
+            ['resolution', (v.videoWidth || 0) + '×' + (v.videoHeight || 0)],
+            ['avg bitrate', avgKbps ? avgKbps + ' kbps' : '—'],
+            ['render fps', lastFps ? lastFps.toFixed(1) + ' fps' : '—'],
+            ['dropped', q ? (q.droppedVideoFrames + ' / ' + q.totalVideoFrames) : '—'],
+            ['buffer', buf.toFixed(1) + ' s'],
+            ['network', conn.downlink ? conn.downlink + ' Mbps' : '—'],
+            ['speed', v.playbackRate + '×'],
+            ['volume', Math.round((v.muted ? 0 : v.volume) * 100) + '%']
+        ];
+        var rowsEl = gid('apStatsRows'); if (rowsEl) rowsEl.innerHTML = rows.map(function (r) { return '<div class="ap-stats-row"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>'; }).join('');
+        spark.push(lastFps || 0); if (spark.length > 40) spark.shift(); drawSpark();
+    }
+
+    // 把控件事件绑定到（新的）<video> 元素上——每次换集后调用
+    function attachVideo(v) {
+        v.addEventListener('play', setPlayIcon);
+        v.addEventListener('pause', function () { setPlayIcon(); showControls(true); });
+        v.addEventListener('loadedmetadata', function () { if (v === player.video) { elDur.textContent = fmt(v.duration); syncVol(); } });
+        v.addEventListener('timeupdate', function () {
+            if (v !== player.video) return;
+            elCur.textContent = fmt(v.currentTime);
+            var d = v.duration || 0, r = d ? v.currentTime / d : 0;
+            elPlayed.style.width = (r * 100) + '%'; elThumb.style.left = (r * 100) + '%';
+        });
+        v.addEventListener('volumechange', function () { if (v === player.video) { prefVol = v.volume; prefMuted = v.muted; syncVol(); } });
+        v.addEventListener('ratechange', function () { if (v === player.video) { prefRate = v.playbackRate; elSpeed.textContent = (v.playbackRate === 1 ? '1' : v.playbackRate) + '×'; } });
+        v.addEventListener('waiting', function () { if (v === player.video) stage.classList.add('ap-loading'); });
+        v.addEventListener('seeking', function () { if (v === player.video) stage.classList.add('ap-loading'); });
+        ['playing', 'canplay', 'seeked'].forEach(function (ev) { v.addEventListener(ev, function () { if (v === player.video) stage.classList.remove('ap-loading'); }); });
+        if (v.requestVideoFrameCallback) {
+            var rvfc = function (now) { if (v !== player.video) return; frames++; if (!fpsT0) fpsT0 = now; if (now - fpsT0 >= 1000) { lastFps = frames * 1000 / (now - fpsT0); frames = 0; fpsT0 = now; } v.requestVideoFrameCallback(rvfc); };
+            v.requestVideoFrameCallback(rvfc);
         }
+    }
+
+    // 挂载 / 重挂载 DPlayer（stage 不变 → 全屏不中断，实测 destroy 不会 exitFullscreen）
+    function mount(url, subUrl, autoplay) {
+        if (player.dp) { try { player.dp.destroy(); } catch (e) { } }
+        var c = gid('dplayer'); if (c) c.innerHTML = '';
+        lastFps = 0; frames = 0; fpsT0 = 0; spark = [];
+        player.dp = new DPlayer({
+            container: c, autoplay: false, screenshot: false, airplay: true, theme: '#FF4FA3', preload: 'auto', hotkey: true,
+            video: { url: url, pic: 'https://gcore.jsdelivr.net/gh/RyanL-29/aniopen/background.png', type: 'auto' },
+            subtitle: { url: subUrl, type: 'webvtt', fontSize: '1.6em', bottom: '13px', color: '#fff' }
+        });
+        player.video = player.dp.video;
+        attachVideo(player.video);
+        player.video.playbackRate = prefRate;
+        if (prefVol != null) { player.video.volume = prefVol; player.video.muted = prefMuted; }
+        if (!subOn) { var stx = stage.querySelector('.dplayer-subtitle'); if (stx) stx.style.display = 'none'; }
+        headBytes = 0; var reqId = ++mountSeq; try { fetch(url, { method: 'HEAD' }).then(function (r) { if (reqId !== mountSeq) return; headBytes = parseInt(r.headers.get('content-length') || '0', 10) || 0; }).catch(function () { }); } catch (e) { }
+        setPlayIcon(); syncVol();
+        if (autoplay) { var p = player.video.play(); if (p && p.catch) p.catch(function () { }); }
+    }
+
+    // ---- 控件绑定（只绑一次，全部引用 player.video）----
+    elPlay.onclick = togglePlay; gid('apBig').onclick = togglePlay;
+    gid('apB10').onclick = function () { var v = player.video; if (v) v.currentTime = Math.max(0, v.currentTime - 10); };
+    gid('apF10').onclick = function () { var v = player.video; if (v) v.currentTime = Math.min(v.duration || 1e9, v.currentTime + 10); };
+    var seeking = false;
+    elProg.addEventListener('mousedown', function (e) { seeking = true; seekAt(e.clientX); });
+    onDoc('mousemove', function (e) { if (seeking) seekAt(e.clientX); });
+    onDoc('mouseup', function () { seeking = false; });
+    elProg.addEventListener('mousemove', function (e) { var v = player.video; var rc = elProg.getBoundingClientRect(); var r = Math.min(1, Math.max(0, (e.clientX - rc.left) / rc.width)); elTip.style.left = (r * 100) + '%'; elTip.textContent = fmt(r * ((v && v.duration) || 0)); });
+    elVol.addEventListener('input', function () { var v = player.video; if (v) { v.muted = false; v.volume = this.value / 100; } });
+    // 喇叭按钮 = 开/关音量弹窗（可点击关闭）；弹窗内的按钮 = 静音
+    elMute.onclick = function (e) { e.stopPropagation(); stage.classList.remove('ap-menu-open'); elVolWrap.classList.toggle('ap-volopen'); };
+    if (elMuteToggle) elMuteToggle.onclick = function (e) { e.stopPropagation(); var v = player.video; if (v) v.muted = !v.muted; };
+    gid('apVolPop').addEventListener('click', function (e) { e.stopPropagation(); });
+    gid('apSub').onclick = function () { subOn = !subOn; var stx = stage.querySelector('.dplayer-subtitle'); if (stx) stx.style.display = subOn ? '' : 'none'; this.style.opacity = subOn ? '1' : '.45'; };
+    var speeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
+    elSpeed.onclick = function (e) {
+        e.stopPropagation(); stage.classList.remove('ap-panel-open', 'ap-stats-open'); elVolWrap.classList.remove('ap-volopen');
+        var same = stage.classList.contains('ap-menu-open') && elMenu.getAttribute('data-menu') === 'speed';
+        var cur = player.video ? player.video.playbackRate : 1;
+        elMenu.setAttribute('data-menu', 'speed');
+        elMenu.innerHTML = '<div class="ap-menu-title">播放速度</div>' + speeds.map(function (s) { return '<div class="ap-mi' + (cur === s ? ' active' : '') + '" data-s="' + s + '"><i class="mdui-icon material-icons">' + (cur === s ? 'check' : 'speed') + '</i>' + s + '×</div>'; }).join('');
+        elMenu.querySelectorAll('.ap-mi').forEach(function (it) { it.onclick = function () { var s = parseFloat(this.getAttribute('data-s')); prefRate = s; if (player.video) player.video.playbackRate = s; elSpeed.textContent = (s === 1 ? '1' : s) + '×'; stage.classList.remove('ap-menu-open'); }; });
+        if (same) stage.classList.remove('ap-menu-open'); else stage.classList.add('ap-menu-open');
+    };
+    gid('apMore').onclick = function (e) {
+        e.stopPropagation(); stage.classList.remove('ap-panel-open', 'ap-stats-open'); elVolWrap.classList.remove('ap-volopen');
+        var same = stage.classList.contains('ap-menu-open') && elMenu.getAttribute('data-menu') === 'more';
+        elMenu.setAttribute('data-menu', 'more');
+        elMenu.innerHTML =
+            '<div class="ap-menu-title">更多</div>' +
+            '<div class="ap-mi" id="miShot"><i class="mdui-icon material-icons">photo_camera</i>截圖</div>' +
+            '<div class="ap-mi" id="miStats"><i class="mdui-icon material-icons">show_chart</i>顯示統計</div>' +
+            '<div class="ap-mi" id="miPip"><i class="mdui-icon material-icons">picture_in_picture_alt</i>畫中畫</div>';
+        gid('miShot').onclick = function () { takeShot(); stage.classList.remove('ap-menu-open'); };
+        gid('miStats').onclick = function () { stage.classList.toggle('ap-stats-open'); stage.classList.remove('ap-menu-open'); };
+        gid('miPip').onclick = function () { try { var v = player.video; if (document.pictureInPictureElement) document.exitPictureInPicture(); else if (v && v.requestPictureInPicture) v.requestPictureInPicture(); } catch (e) { } stage.classList.remove('ap-menu-open'); };
+        if (same) stage.classList.remove('ap-menu-open'); else stage.classList.add('ap-menu-open');
+    };
+    elMenu.addEventListener('click', function (e) { e.stopPropagation(); });
+    gid('apStatsClose').onclick = function () { stage.classList.remove('ap-stats-open'); };
+    if (window.__apStatsTimer) clearInterval(window.__apStatsTimer);
+    window.__apStatsTimer = setInterval(updateStats, 1000);
+    gid('apFull').onclick = function () {
+        var d = document;
+        if (d.fullscreenElement || d.webkitFullscreenElement) { var ex = d.exitFullscreen || d.webkitExitFullscreen; if (ex) ex.call(d); }
+        else {
+            var rq = stage.requestFullscreen || stage.webkitRequestFullscreen;
+            if (rq) { try { rq.call(stage); } catch (e) { } }
+            else { var v = player.video; if (v && v.webkitEnterFullscreen) v.webkitEnterFullscreen(); }   // iOS 回退到原生 video 全屏
+        }
+    };
+    function apFsSync() { var b = gid('apFull'); if (b) b.querySelector('.mdui-icon').textContent = (document.fullscreenElement || document.webkitFullscreenElement) ? 'fullscreen_exit' : 'fullscreen'; }
+    onDoc('fullscreenchange', apFsSync); onDoc('webkitfullscreenchange', apFsSync);
+    gid('apList').onclick = function (e) { e.stopPropagation(); stage.classList.remove('ap-menu-open', 'ap-stats-open'); elVolWrap.classList.remove('ap-volopen'); stage.classList.toggle('ap-panel-open'); };
+    gid('apPanelClose').onclick = function (e) { e.stopPropagation(); stage.classList.remove('ap-panel-open'); };
+    gid('apEpPanel').addEventListener('click', function (e) { e.stopPropagation(); });
+    var touchReveal = false;
+    stage.addEventListener('click', function (e) {
+        var isVideo = e.target === stage || e.target.id === 'dplayer' || e.target.tagName === 'VIDEO' || String(e.target.className || '').indexOf('dplayer-video') >= 0;
+        if (!isVideo) return;
+        if (elVolWrap.classList.contains('ap-volopen')) { elVolWrap.classList.remove('ap-volopen'); return; }
+        if (stage.classList.contains('ap-menu-open')) { stage.classList.remove('ap-menu-open'); return; }
+        if (stage.classList.contains('ap-panel-open')) { stage.classList.remove('ap-panel-open'); return; }
+        if (stage.classList.contains('ap-stats-open')) { stage.classList.remove('ap-stats-open'); return; }
+        if (touchReveal) { touchReveal = false; return; }   // 触屏此次点击仅为唤出控件，不切换播放
+        togglePlay();
+    });
+    onDoc('click', function () { stage.classList.remove('ap-menu-open', 'ap-stats-open'); elVolWrap.classList.remove('ap-volopen'); });
+    stage.addEventListener('mousemove', function () { showControls(); });
+    stage.addEventListener('touchstart', function () { touchReveal = !stage.classList.contains('ap-active'); showControls(); }, { passive: true });
+    gid('apBack').onclick = function () { history.back(); };
+
+    // 注册清理钩子：下次进入播放页或本页卸载时拆除本次运行的 document 监听器 / 定时器 / DPlayer
+    window.__apCleanup = function () {
+        docHandlers.forEach(function (h) { document.removeEventListener(h[0], h[1], h[2]); });
+        if (window.__apStatsTimer) { clearInterval(window.__apStatsTimer); window.__apStatsTimer = null; }
+        try { if (player.dp) player.dp.destroy(); } catch (e) { }
+    };
+
+    mount(encodedLink, subtitle, false);
+    showControls(true);
+
+    // ===== 选集（分类标签 + 原地换源，不跳转、不退出全屏）=====
+    // 注意：ap* 助手一律对「已解码」的文件名操作；rawName 是编码路径段，仅在此处解码一次（避免二次解码）。
+    function apDecode(s) { try { return decodeURIComponent(s); } catch (e) { return s; } }
+    function apBase(fn) {   // 去掉配音标记/结尾集数的基础番名（原版与配音共享）
+        var s = fn.replace(/\.[^.]+$/, "").replace(/^\s*\[[^\]]*\]\s*/, "").replace(/\[[^\]]*\]/g, " ").replace(/[（(][^）)]*[）)]/g, " ");
+        s = s.replace(/\s+-\s+\d{1,4}\s*$/, "");   // 去掉结尾“ - 集数”（只认末尾，避免“- 2nd Season”被误当集数）
+        return s.replace(/\s+/g, " ").trim();
+    }
+    function apDub(fn) {     // 配音/语言分类标签（允许标签内有额外字，如 [中文配音版]）
+        var m = fn.match(/\[\s*(中文配音|國語|国语|國配|国配|中配|粵語|粤语|台配|日配|雙語|双语)[^\]]*\]/);
+        return m ? m[1] : "原版";
+    }
+    function apEp(fn) { var s = fn.replace(/\.[^.]+$/, "").replace(/\[[^\]]*\]/g, " "); var m = s.match(/\s+-\s+(\d{1,4})\s*$/); return m ? parseInt(m[1], 10) : null; }
+    function apEsc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+    function apTitleOf(fn) { var s = fn.replace(/\.[^.]+$/, "").replace(/^\s*\[[^\]]*\]\s*/, "").replace(/\[[^\]]*\]/g, " ").replace(/\s+/g, " ").trim(); return s || fn; }
+
+    var dirPath = path.substring(0, path.lastIndexOf('/') + 1);
+    var curName = apDecode(rawName);   // 已解码
+    var curBase = apBase(curName);
+    var apPwd = localStorage.getItem('password' + dirPath);
+    var viewLabel = null;              // 用户手动选中的分类标签（两个选集面板共享）
+
+    // 原地切集：换源 + 更新地址栏(不 render)/标题/下载区/高亮，保持全屏
+    function switchEpisode(name) {
+        var enc = encodeURIComponent(name).replaceAll(/%25/g, "%");   // 与初始构建一致
+        var view = dirPath + enc + '?a=view';
+        var url = window.location.origin + dirPath + enc;
+        var sub = url.replace(/\.[^.\/]+$/, "") + '.vtt';
+        try { history.replaceState(null, '', view); } catch (e) { }   // 只占一条历史，返回一次即回目录
+        curName = name; viewLabel = null;
+        mount(url, sub, true);
+        stage.classList.remove('ap-panel-open', 'ap-menu-open', 'ap-stats-open');
+        var tt = apTitleOf(name), te = stage.querySelector('.ap-title'); if (te) te.textContent = tt; try { document.title = tt; } catch (e) { }
+        var fnEl = gid('apFileName'); if (fnEl) fnEl.textContent = tt;
+        var di = gid('apDlInput'); if (di) di.value = url;
+        var db = gid('apDlBtn'); if (db) db.setAttribute('onclick', "javascript:location.href='" + url + "'");
+        var sb = gid('copybt'); if (sb) sb.setAttribute('href', view);
+        var vl = gid('apVlcLink'); if (vl) vl.setAttribute('href', 'vlc://' + url);
+        renderAll();
+        showControls();
+    }
+
+    var variants = [];  // [{label, eps:[{name,ep}]}]
+    function activeLabelNow() {
+        if (viewLabel && variants.some(function (v) { return v.label === viewLabel; })) return viewLabel;
+        var playing = variants.filter(function (v) { return v.eps.some(function (e) { return e.name === curName; }); })[0];
+        return (playing || variants[0]).label;
+    }
+    function renderInto(root, withHead) {
+        if (!root || !variants.length) return;
+        var activeLabel = activeLabelNow();
+        var cur = variants.filter(function (v) { return v.label === activeLabel; })[0] || variants[0];
+        var tabs = variants.length > 1
+            ? '<div class="ap-eptabs">' + variants.map(function (v) { return '<span class="ap-eptab' + (v.label === activeLabel ? ' active' : '') + '" data-label="' + apEsc(v.label) + '">' + apEsc(v.label) + '<span style="opacity:.6"> · ' + v.eps.length + '</span></span>'; }).join('') + '</div>'
+            : '';
+        var grid = cur.eps.map(function (e) {
+            var label = e.ep != null ? e.ep : apTitleOf(e.name);
+            var active = e.name === curName ? ' active' : '';
+            return '<a class="ap-ep' + active + '" data-name="' + apEsc(e.name) + '" title="' + apEsc(e.name) + '">' + apEsc(String(label)) + '</a>';
+        }).join('');
+        var head = withHead ? '<div class="ap-eps-head">選集<span class="ap-eps-sub">共 ' + cur.eps.length + ' 集</span></div>' : '';
+        root.innerHTML = head + tabs + '<div class="ap-epgrid">' + grid + '</div>';
+        root.querySelectorAll('.ap-eptab').forEach(function (t) {
+            t.addEventListener('click', function (ev) {
+                ev.stopPropagation();
+                viewLabel = this.getAttribute('data-label');   // 两个面板共享手选分类
+                renderAll();
+            });
+        });
+        bindEps(root);
+    }
+    function bindEps(container) {
+        container.querySelectorAll('.ap-ep').forEach(function (a) {
+            a.addEventListener('click', function (ev) { ev.preventDefault(); ev.stopPropagation(); switchEpisode(this.getAttribute('data-name')); });
+        });
+    }
+    function renderAll() {
+        renderInto(gid('apEpisodes'), true);
+        renderInto(gid('apPanelBody'), false);
+        var ps = gid('apPanelSub');
+        if (ps) { var tot = variants.reduce(function (n, v) { return n + v.eps.length; }, 0); ps.textContent = variants.length > 1 ? (variants.length + ' 版本 · 共 ' + tot + ' 集') : ('共 ' + tot + ' 集'); }
+    }
+
+    $.post(dirPath, JSON.stringify({ password: apPwd || '' }), function (data) {
+        var hideList = function () { var lb = gid('apList'); if (lb) lb.style.display = 'none'; };
+        var obj; try { obj = JSON.parse(data); } catch (e) { hideList(); return; }
+        if (!obj || obj.error || !obj.files) { hideList(); return; }
+        var byLabel = {};
+        obj.files.forEach(function (it) {
+            if (!it || !it.name || it.mimeType === 'application/vnd.google-apps.folder') return;
+            var ext = (it.name.split('.').pop() || '').toLowerCase();
+            if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf('|' + ext + '|') < 0) return;
+            if (apBase(it.name) !== curBase) return;   // 同一部番（含各配音版本）；it.name 已解码，不再二次解码
+            var lbl = apDub(it.name);
+            (byLabel[lbl] = byLabel[lbl] || []).push({ name: it.name, ep: apEp(it.name) });
+        });
+        var labels = Object.keys(byLabel);
+        if (!labels.length) { hideList(); return; }
+        labels.sort(function (a, b) { if (a === '原版') return -1; if (b === '原版') return 1; return a < b ? -1 : 1; });
+        variants = labels.map(function (l) {
+            var eps = byLabel[l].sort(function (a, b) { return (a.ep == null ? 1e9 : a.ep) - (b.ep == null ? 1e9 : b.ep); });
+            // 同集去重（同画质/字幕多文件时避免出现重复集号 tile）
+            var seenEp = {}, uniq = [];
+            eps.forEach(function (e) { if (e.ep == null) { uniq.push(e); return; } if (seenEp[e.ep]) return; seenEp[e.ep] = 1; uniq.push(e); });
+            return { label: l, eps: uniq };
+        });
+        var total = variants.reduce(function (n, v) { return n + v.eps.length; }, 0);
+        if (total < 2 && variants.length < 2) { hideList(); return; }
+        renderAll();
     });
 }
 
