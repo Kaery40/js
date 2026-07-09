@@ -823,6 +823,7 @@ function file_video(path) {
     var hideTimer = null, subOn = true;
     var prefRate = 1, prefVol = null, prefMuted = false;   // 换集时保留倍速/音量
     var headBytes = 0, lastFps = 0, frames = 0, fpsT0 = 0, spark = [], mountSeq = 0;
+    var autoNext = localStorage.getItem('ap_autonext') !== '0';   // 自动播放下一集（默认开，记忆到 localStorage）
     // 生命周期清理：进入时先拆掉上一次运行残留的 document 监听器/定时器/DPlayer（防 SPA 跨页累积泄漏）
     if (window.__apCleanup) { try { window.__apCleanup(); } catch (e) { } }
     var docHandlers = [];
@@ -911,6 +912,7 @@ function file_video(path) {
         v.addEventListener('waiting', function () { if (v === player.video) stage.classList.add('ap-loading'); });
         v.addEventListener('seeking', function () { if (v === player.video) stage.classList.add('ap-loading'); });
         ['playing', 'canplay', 'seeked'].forEach(function (ev) { v.addEventListener(ev, function () { if (v === player.video) stage.classList.remove('ap-loading'); }); });
+        v.addEventListener('ended', function () { if (v === player.video) playNext(); });
         if (v.requestVideoFrameCallback) {
             var rvfc = function (now) { if (v !== player.video) return; frames++; if (!fpsT0) fpsT0 = now; if (now - fpsT0 >= 1000) { lastFps = frames * 1000 / (now - fpsT0); frames = 0; fpsT0 = now; } v.requestVideoFrameCallback(rvfc); };
             v.requestVideoFrameCallback(rvfc);
@@ -968,9 +970,18 @@ function file_video(path) {
         elMenu.setAttribute('data-menu', 'more');
         elMenu.innerHTML =
             '<div class="ap-menu-title">更多</div>' +
+            '<div class="ap-mi' + (autoNext ? ' active' : '') + '" id="miAuto"><i class="mdui-icon material-icons">' + (autoNext ? 'toggle_on' : 'toggle_off') + '</i>自動播放下一集</div>' +
             '<div class="ap-mi" id="miShot"><i class="mdui-icon material-icons">photo_camera</i>截圖</div>' +
             '<div class="ap-mi" id="miStats"><i class="mdui-icon material-icons">show_chart</i>顯示統計</div>' +
             '<div class="ap-mi" id="miPip"><i class="mdui-icon material-icons">picture_in_picture_alt</i>畫中畫</div>';
+        gid('miAuto').onclick = function (ev) {
+            ev.stopPropagation();
+            autoNext = !autoNext;
+            try { localStorage.setItem('ap_autonext', autoNext ? '1' : '0'); } catch (e) { }
+            this.classList.toggle('active', autoNext);
+            this.querySelector('.mdui-icon').textContent = autoNext ? 'toggle_on' : 'toggle_off';
+            try { mdui.snackbar({ message: autoNext ? '已開啟：播放完自動下一集' : '已關閉自動播放', position: 'right-top', timeout: 1500 }); } catch (e) { }
+        };
         gid('miShot').onclick = function () { takeShot(); stage.classList.remove('ap-menu-open'); };
         gid('miStats').onclick = function () { stage.classList.toggle('ap-stats-open'); stage.classList.remove('ap-menu-open'); };
         gid('miPip').onclick = function () { try { var v = player.video; if (document.pictureInPictureElement) document.exitPictureInPicture(); else if (v && v.requestPictureInPicture) v.requestPictureInPicture(); } catch (e) { } stage.classList.remove('ap-menu-open'); };
@@ -1063,6 +1074,17 @@ function file_video(path) {
     }
 
     var variants = [];  // [{label, eps:[{name,ep}]}]
+    // 播放完自动下一集（同一分类内的下一集）
+    function playNext() {
+        if (!autoNext || !variants.length) return false;
+        var grp = variants.filter(function (v) { return v.eps.some(function (e) { return e.name === curName; }); })[0];
+        if (!grp) return false;
+        var idx = -1;
+        for (var k = 0; k < grp.eps.length; k++) { if (grp.eps[k].name === curName) { idx = k; break; } }
+        if (idx < 0 || idx + 1 >= grp.eps.length) { try { mdui.snackbar({ message: '已是最後一集', position: 'right-top', timeout: 1500 }); } catch (e) { } return false; }
+        switchEpisode(grp.eps[idx + 1].name);
+        return true;
+    }
     function activeLabelNow() {
         if (viewLabel && variants.some(function (v) { return v.label === viewLabel; })) return viewLabel;
         var playing = variants.filter(function (v) { return v.eps.some(function (e) { return e.name === curName; }); })[0];
